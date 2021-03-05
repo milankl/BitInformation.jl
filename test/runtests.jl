@@ -1,5 +1,6 @@
 using BitInformation
 using Test
+import StatsBase.entropy
 
 @testset "Bitpattern entropy" begin
     for N in [100,1000,10000,100000]
