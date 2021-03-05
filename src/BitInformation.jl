@@ -5,7 +5,7 @@ module BitInformation
         xor_delta, unxor_delta, xor_delta!, unxor_delta!,
         signed_exponent,
         bitinformation, mutual_information, redundancy, bitpattern_entropy,
-        bitcount_entropy, bitpaircount, bitcondprobability
+        bitcount, bitcount_entropy, bitpaircount, bitcondprobability
 
     import StatsBase.entropy
 
