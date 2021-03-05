@@ -1,4 +1,4 @@
-using BitInformation
+# using BitInformation
 using Test
 
 @testset "Bitpattern entropy" begin
@@ -90,20 +90,20 @@ end
 
     # test the PRNG on uniformity
     N = 100_000
-    H = bitcountentropy(rand(UInt8,N))
+    H = bitcount_entropy(rand(UInt8,N))
     @test all(isapprox.(H,ones(8),rtol=1e-4))
 
-    H = bitcountentropy(rand(UInt16,N))
+    H = bitcount_entropy(rand(UInt16,N))
     @test all(isapprox.(H,ones(16),rtol=1e-4))
 
-    H = bitcountentropy(rand(UInt32,N))
+    H = bitcount_entropy(rand(UInt32,N))
     @test all(isapprox.(H,ones(32),rtol=1e-4))
 
-    H = bitcountentropy(rand(UInt64,N))
+    H = bitcount_entropy(rand(UInt64,N))
     @test all(isapprox.(H,ones(64),rtol=1e-4))
 
     # also for random floats
-    H = bitcountentropy(rand(N))
+    H = bitcount_entropy(rand(N))
     @test H[1:5] == zeros(5)    # first bits never change
     @test all(isapprox.(H[16:55],ones(40),rtol=1e-4))
 end
@@ -143,3 +143,65 @@ end
     sort!(A,dims=2)
     @test sum(bitinformation(A,dims=1)) < sum(bitinformation(A,dims=2))
 end
+
+@testset "Mutual information" begin
+    N = 10_000
+
+    # equal probabilities for 00|01|10|11
+    @test 0.0 == mutual_information([0.25 0.25;0.25 0.25])
+
+    # every 0 or 1 in A is also a 0 or 1 in B
+    @test 1.0 == mutual_information([0.5 0.0;0.0 0.5])
+
+    # as before but more 1s means a lower entropy
+    @test entropy([0.25,0.75],2) == mutual_information([0.25 0.0;0.0 0.75])
+
+    # every bit is inverted
+    @test 1.0 == mutual_information([0.0 0.5;0.5 0.0])
+
+    # two independent arrays
+    for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
+        mutinf = bitinformation(rand(T,N),rand(T,N))
+        for m in mutinf
+            @test isapprox(0,m,atol=1e-3)
+        end
+    end
+
+    # mutual information of identical arrays
+    # for 0,1 occuring exactly 50/50 this is 1bit
+    # but so in practice slightly lower for rand(UInt),
+    # or clearly lower for low entropy bits in Float16/32/64
+    # but identical to the bitcount_entropy (up to rounding errors)
+    for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
+        R = rand(T,N)
+        mutinf = bitinformation(R,R)
+        @test mutinf ≈ bitcount_entropy(R)
+    end
+end
+
+@testset "Redundancy" begin
+    N = 100_000
+
+    # No redundancy in independent arrays
+    for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
+        redun = redundancy(rand(T,N),rand(T,N))
+        for r in redun
+            @test isapprox(0,r,atol=1e-4)
+        end
+    end
+
+    # Full redundancy in identical arrays
+    for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
+        A = rand(T,N)
+        H = bitcount_entropy(A)
+        R = redundancy(A,A)
+        for (r,h) in zip(R,H)
+            if iszero(h)
+                @test iszero(r)
+            else
+                @test isapprox(1,r,atol=1e-4)
+            end
+        end
+    end
+end
+

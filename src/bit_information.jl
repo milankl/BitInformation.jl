@@ -24,7 +24,7 @@ end
 
 """Entropy [bit] for bitcount functions. Maximised to 1bit for random uniformly
 distributed bits in A."""
-function bitcountentropy(A::AbstractArray)
+function bitcount_entropy(A::AbstractArray)
     N = prod(size(A))
     ps = bitcount(A) / N
     e = [abs(entropy([p,1-p],2)) for p in ps]
@@ -71,7 +71,7 @@ end
 of array A. Returns a 4xn array with conditional probabilities p(nextbit=0|previousbit=0),
 p(1|0),p(0|1),p(1|1) in rows and every bit position in columns. Returns NaN when
 all bits are either 0,1 (in which case the conditional probability is not defined)."""
-function bitcondprobability(A::Array{T}) where {T<:Union{Integer,AbstractFloat}}
+function bit_condprobability(A::Array{T}) where {T<:Union{Integer,AbstractFloat}}
     N = prod(size(A[2:end]))        # elements in array (A[1] is )
     n1 = bitcount(A[1:end-1])
     n0 = N.-n1
@@ -86,8 +86,8 @@ end
 
 """Calculates the conditional entropy for 00,01,10,11 for every bit position across
 all elements of A."""
-function bitcpentropy(A::Array{T}) where {T<:Union{Integer,AbstractFloat}}
-    pcond = bitcondprobability(A)
+function bit_condentropy(A::Array{T}) where {T<:Union{Integer,AbstractFloat}}
+    pcond = bit_condprobability(A)
     pcond[isnan.(pcond)] .= 0
     pcond /= 2      # divide by 2 as p(0|0)+p(1|0)+p(0|1)+p(1|1)=2
     e = [abs(entropy(pcond[:,i],2)) for i in 1:size(pcond)[2]]
