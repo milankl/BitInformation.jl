@@ -16,5 +16,6 @@ module BitInformation
     include("signed_exponent.jl")
     include("bit_information.jl")
     include("mutual_information.jl")
+    include("bitpattern_entropy.jl")
 
 end
