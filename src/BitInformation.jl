@@ -1,7 +1,9 @@
 module BitInformation
 
-    export bittranspose, bitbacktranspose, shave, set_one, groom, halfshave,
-        kouzround, minpos, round!, xor_delta, unxor_delta, signed_exponent,
+    export bittranspose, bitbacktranspose,
+        shave, set_one, groom, halfshave,   kouzround, round!, 
+        xor_delta, unxor_delta, xor_delta!, unxor_delta!,
+        signed_exponent,
         bitinformation, mutual_information, redundancy, bitpattern_entropy,
         bitcount_entropy, bitpaircount, bitcondprobability
 
