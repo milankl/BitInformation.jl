@@ -1,4 +1,4 @@
-# using BitInformation
+using BitInformation
 using Test
 
 @testset "Bitpattern entropy" begin
