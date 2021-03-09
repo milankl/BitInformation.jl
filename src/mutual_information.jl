@@ -136,3 +136,15 @@ function redundancy(A::AbstractArray{T},
     R[iszero.(HA+HB)] .= 0.0         # HA+HB = 0 creates NaN
     return R
 end
+
+function redundancy(A::AbstractArray{T},
+                    B::AbstractArray{T},
+                    n::Int) where {T<:Union{Integer,AbstractFloat}}
+    mutinf = bitinformation(A,B,n)  # mutual information
+    HA = bitcount_entropy(A)        # entropy of A
+    HB = bitcount_entropy(B)        # entropy of B
+    R = 2mutinf./(HA+HB)            # redundancy (symmetric)
+
+    R[iszero.(HA+HB)] .= 0.0         # HA+HB = 0 creates NaN
+    return R
+end
