@@ -112,7 +112,7 @@ end
 @testset "Bitinformation random" begin
     N = 100_000
     A = rand(UInt64,N)
-    @test all(bitinformation(A) .< 1e-4)
+    @test all(bitinformation(A) .< 1e-3)
 
     A = rand(Float32,N)
     bi = bitinformation(A)
@@ -187,7 +187,7 @@ end
     for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
         redun = redundancy(rand(T,N),rand(T,N))
         for r in redun
-            @test isapprox(0,r,atol=1e-4)
+            @test isapprox(0,r,atol=1e-3)
         end
     end
 
@@ -200,9 +200,40 @@ end
             if iszero(h)
                 @test iszero(r)
             else
-                @test isapprox(1,r,atol=1e-4)
+                @test isapprox(1,r,atol=1e-3)
             end
         end
     end
 end
 
+@testset "Mutual information with round to nearest" begin
+    N = 100_000
+
+    # compare shaving to round to nearest
+    # for round to nearest take m more bits into account for the
+    # joint probability
+    m = 8
+
+    for T in [Float32,Float64]
+        R = rand(T,N)
+        for keepbit in [5,10,15]
+            mutinf_shave = bitinformation(R,shave(R,keepbit))
+            mutinf_round = bitinformation(R,round(R,keepbit),m)
+            for (s,r) in zip(mutinf_shave,mutinf_round)
+                @test isapprox(s,r,atol=1e-2)
+            end
+        end
+    end
+
+    # shaving shouldn't change
+    for T in [Float32,Float64]
+        R = rand(T,N)
+        for keepbit in [5,10,15]
+            mutinf_shave = bitinformation(R,shave(R,keepbit))
+            mutinf_round = bitinformation(R,shave(R,keepbit),m)
+            for (s,r) in zip(mutinf_shave,mutinf_round)
+                @test isapprox(s,r,atol=1e-2)
+            end
+        end
+    end
+end
