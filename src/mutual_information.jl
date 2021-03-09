@@ -32,7 +32,7 @@ function bitinformation(A::AbstractArray{T},
     nelements = length(A)
     nbits = 8*sizeof(T)
 
-    # array of counters, first dim is from last bit to first
+    # array of counters
     C = zeros(Int,nbits,2,2)
 
     for (a,b) in zip(A,B)   # run through all elements in A,B pairwise
@@ -40,9 +40,34 @@ function bitinformation(A::AbstractArray{T},
     end
 
     # P is the join probabilities mass function
-    # invert the order of C's first dimension
-    P = [C[i,:,:]/nelements for i in nbits:-1:1]
+    P = [C[i,:,:]/nelements for i in 1:nbits]
     M = [mutual_information(p) for p in P]
+    return M
+end
+
+"""Mutual bitwise information of the elements in input arrays A,B.
+A and B have to be of same size and eltype."""
+function bitinformation(A::AbstractArray{T},
+                        B::AbstractArray{T},
+                        n::Int) where {T<:Union{Integer,AbstractFloat}}
+    
+    @assert size(A) == size(B)
+    nelements = length(A)
+    nbits = 8*sizeof(T)
+
+    # array of counters, first dim is from last bit to first
+    C = [zeros(Int,2^min(i,n+1),2) for i in nbits:-1:1]
+
+    for (a,b) in zip(A,B)   # run through all elements in A,B pairwise
+        bitcount!(C,a,b,n)  # count the bits and update counter array C
+    end
+
+    # P is the join probabilities mass function
+    P = [C[i]/nelements for i in 1:nbits]
+    M = [mutual_information(p) for p in P]
+    
+    # filter out rounding errors
+    M[isapprox.(M,0,atol=10eps(Float64))] .= 0
     return M
 end
 
@@ -56,14 +81,45 @@ end
 
 """Update counter array of size nbits x 2 x 2 for every 
 00|01|10|11-bitpairing in a,b.""" 
+function bitcount!(C::Vector{Matrix{Int}},a::T,b::T,n::Int) where {T<:AbstractFloat}
+    uia = reinterpret(Base.uinttype(T),a)
+    uib = reinterpret(Base.uinttype(T),b)
+    bitcount!(C,uia,uib,n)
+end
+
+"""Update counter array of size nbits x 2 x 2 for every 
+00|01|10|11-bitpairing in a,b.""" 
 function bitcount!(C::Array{Int,3},a::T,b::T) where {T<:Integer}
     nbits = 8*sizeof(T)
-    mask = one(T)
+    mask = one(T) << (nbits-1)
     for i in 1:nbits
-        j = 1+((a & mask) >>> (i-1))
-        k = 1+((b & mask) >>> (i-1))
+        j = 1+((a & mask) >>> (nbits-i))
+        k = 1+((b & mask) >>> (nbits-i))
         C[i,j,k] += 1
-        mask <<= 1
+        mask >>>= 1
+    end
+end
+
+"""Update counter array of size nbits x 2 x 2 for every 
+00|01|10|11-bitpairing in a,b.""" 
+function bitcount!(C::Vector{Matrix{Int}},a::T,b::T,n::Int) where {T<:Integer}
+
+    nbits = 8*sizeof(T)
+
+    for i = nbits:-1:1
+        @boundscheck size(C[end-i+1],1) == 2^min(i,n+1) || throw(BoundsError()) 
+    end
+    
+    maskb = one(T) << (nbits-1)
+    maska = reinterpret(T,signed(maskb) >> n)
+
+    for i in 1:nbits
+        j = 1+((a & maska) >>> max(nbits-n-i,0))
+        k = 1+((b & maskb) >>> (nbits-i))
+        C[i][j,k] += 1
+
+        maska >>>= 1    # shift through nbits
+        maskb >>>= 1
     end
 end
 
