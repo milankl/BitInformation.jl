@@ -1,4 +1,5 @@
 # BitInformation.jl
+[![CI](https://github.com/milankl/BitInformation.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/milankl/BitInformation.jl/actions/workflows/CI.yml)
 
 BitInformation.jl is a package for the analysis of bitwise information in Julia Arrays.
 
