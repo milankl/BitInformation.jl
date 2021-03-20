@@ -123,7 +123,7 @@ function bitcount!(C::Vector{Matrix{Int}},a::T,b::T,n::Int) where {T<:Integer}
     end
 end
 
-"""Calculate the bitwise redundancy of two arrays A,B. redundancy
+"""Calculate the bitwise redundancy of two arrays A,B. Redundancy
 is a normalised measure of the mutual information 1 for always
 identical/opposite bits, 0 for no mutual information."""
 function redundancy(A::AbstractArray{T},
@@ -137,14 +137,19 @@ function redundancy(A::AbstractArray{T},
     return R
 end
 
+"""Calculate the bitwise redundancy of two arrays A,B.
+Multi-bit predictor version which includes n lesser significant bit
+as additional predictors in A for the mutual information to account
+for round-to-nearest-induced carry bits. Redundancy is normalised 
+by the entropy of A. To be used for A being the reference array
+and B an approximation of it."""
 function redundancy(A::AbstractArray{T},
                     B::AbstractArray{T},
                     n::Int) where {T<:Union{Integer,AbstractFloat}}
     mutinf = bitinformation(A,B,n)  # mutual information
     HA = bitcount_entropy(A)        # entropy of A
-    HB = bitcount_entropy(B)        # entropy of B
-    R = 2mutinf./(HA+HB)            # redundancy (symmetric)
+    R = mutinf./HA                  # redundancy (asymmetric)
 
-    R[iszero.(HA+HB)] .= 0.0         # HA+HB = 0 creates NaN
+    R[iszero.(HA)] .= 0.0           # HA = 0 creates NaN
     return R
 end
