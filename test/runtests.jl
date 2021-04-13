@@ -1,6 +1,7 @@
 using BitInformation
 using Test
 import StatsBase.entropy
+import Random
 
 @testset "Bitpattern entropy" begin
     for N in [100,1000,10000,100000]
@@ -239,6 +240,8 @@ end
 end
 
 @testset "Information of random set to zero" begin
+
+    Random.seed!(123)
 
     for T in (UInt32,UInt64,Float32,Float64)
         for N in [100,1000,10_000]
