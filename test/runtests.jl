@@ -237,3 +237,23 @@ end
         end
     end
 end
+
+@testset "Information of random set to zero" begin
+
+    for T in (UInt32,UInt64,Float32,Float64)
+        for N in [100,1000,10_000]
+            A = rand(T,N)
+            # increase confidence here from the default 0.99 to avoid test failures
+            # from false positives
+            b = bitinformation(A,confidence=0.999)
+            for ib in b
+                @test 0 == ib
+            end
+
+            m = bitinformation(A[1:end-1],A[2:end],confidence=0.999)
+            for im in m
+                @test 0 == im
+            end
+        end
+    end
+end
