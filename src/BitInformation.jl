@@ -20,5 +20,6 @@ module BitInformation
     include("bit_information.jl")
     include("mutual_information.jl")
     include("bitpattern_entropy.jl")
+    include("binomial.jl")
 
 end

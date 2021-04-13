@@ -1,6 +1,7 @@
 using BitInformation
 using Test
 import StatsBase.entropy
+import Random
 
 @testset "Bitpattern entropy" begin
     for N in [100,1000,10000,100000]
@@ -233,6 +234,28 @@ end
             mutinf_round = bitinformation(R,shave(R,keepbit),m)
             for (s,r) in zip(mutinf_shave,mutinf_round)
                 @test isapprox(s,r,atol=1e-2)
+            end
+        end
+    end
+end
+
+@testset "Information of random set to zero" begin
+
+    Random.seed!(123)
+
+    for T in (UInt32,UInt64,Float32,Float64)
+        for N in [100,1000,10_000]
+            A = rand(T,N)
+            # increase confidence here from the default 0.99 to avoid test failures
+            # from false positives
+            b = bitinformation(A,confidence=0.999)
+            for ib in b
+                @test 0 == ib
+            end
+
+            m = bitinformation(A[1:end-1],A[2:end],confidence=0.999)
+            for im in m
+                @test 0 == im
             end
         end
     end

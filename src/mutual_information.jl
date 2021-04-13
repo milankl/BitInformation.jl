@@ -26,7 +26,10 @@ end
 """Mutual bitwise information of the elements in input arrays A,B.
 A and B have to be of same size and eltype."""
 function bitinformation(A::AbstractArray{T},
-                        B::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
+                        B::AbstractArray{T};
+                        set_zero_insignificant::Bool=true,
+                        confidence::Real=0.99
+                        ) where {T<:Union{Integer,AbstractFloat}}
     
     @assert size(A) == size(B)
     nelements = length(A)
@@ -42,6 +45,14 @@ function bitinformation(A::AbstractArray{T},
     # P is the join probabilities mass function
     P = [C[i,:,:]/nelements for i in 1:nbits]
     M = [mutual_information(p) for p in P]
+
+    # remove information that is insignificantly different from a random 50/50
+    if set_zero_insignificant
+        p = binom_confidence(nelements,confidence)  # get chance p for 1 (or 0) from binom distr
+        M₀ = 1 - entropy([p,1-p],2)                 # free entropy of random 50/50 at trial size
+        M[M .<= M₀] .= 0                            # set zero insignificant
+    end
+
     return M
 end
 

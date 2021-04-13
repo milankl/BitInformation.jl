@@ -114,7 +114,11 @@ function bitinformation(A::AbstractArray,dims::Symbol)
     end
 end
 
-function bitinformation(A::AbstractArray;dims::Int=1)
+function bitinformation(A::AbstractArray;
+                        dims::Int=1,
+                        set_zero_insignificant::Bool=true,
+                        confidence::Real=0.99)
+
     N = prod(size(A))-1                         # elements in array
     n1 = bitcount(A)-bitcount([A[end]])     # occurences of bit = 1
 
@@ -128,10 +132,15 @@ function bitinformation(A::AbstractArray;dims::Int=1)
     end
 
     npair = bitpaircount(A)
-    return bitinformation(n1,npair,N)
+    return bitinformation(n1,npair,N;set_zero_insignificant,confidence)
 end
 
-function bitinformation(n1::Array{Int,1},npair::Array{Int,2},N::Int)
+function bitinformation(n1::Array{Int,1},
+                        npair::Array{Int,2},
+                        N::Int;
+                        set_zero_insignificant::Bool=true,
+                        confidence::Real=0.99)
+
     nbits = length(n1)
     @assert size(npair) == (4,nbits)    "npair array must be of size 4xnbits"
     @assert maximum(n1) <= N            "N cannot be smaller than maximum(n1)"
@@ -157,8 +166,15 @@ function bitinformation(n1::Array{Int,1},npair::Array{Int,2},N::Int)
     H0 = [entropy([p00,p01],2) for (p00,p01) in zip(pcond[1,:],pcond[2,:])]
     H1 = [entropy([p10,p11],2) for (p10,p11) in zip(pcond[3,:],pcond[4,:])]
 
-    # Information content, take abs as rounding errors can yield negative I
-    I = @. abs(H - q0*H0 - q1*H1)
+    # Information content
+    I = @. H - q0*H0 - q1*H1
+
+    # remove information that is insignificantly different from a random 50/50
+    if set_zero_insignificant
+        p = binom_confidence(N,confidence)  # get chance p for 1 (or 0) from binom distr
+        I₀ = 1 - entropy([p,1-p],2)         # free entropy of random [bit]
+        I[I .<= I₀] .= 0                    # set insignficant to zero
+    end
 
     return I
 end
