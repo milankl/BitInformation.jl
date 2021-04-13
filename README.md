@@ -3,9 +3,44 @@
 
 BitInformation.jl is a package for the analysis of bitwise information in Julia Arrays.
 
+## Functionality overview
 
-## Functionality
+Bit information
 
+- `bitpattern_entropy`
+- `bitcount`
+- `bitcount_entropy`
+- `bitpaircount`
+- `bit_condprobability`
+- `bit_condentropy`
+- `bitinformation`
+- `mutual_information`
+- `redundancy`
+
+Bit transformations
+
+- `bittranspose`, `bitbacktranspose`
+- `xor_delta`, `unxor_delta`
+- `signed_exponent`
+
+Rounding
+
+- `round`
+- `shave`
+- `set_one`
+- `halfshave`
+- `groom`
+- `kouzround`
+
+## Installation
+
+BitInformation.jl is not registered yet in the Julia Registry, hence do
+```julia
+julia> ] add https://github.com/milankl/BitInformation.jl
+```
+where `]` opens the package manger.
+
+## Documentation
 ### Information content
 
 To calculate the information content of an n-dimensional array (any typ `T` is
@@ -368,11 +403,3 @@ julia> bitstring.(halfshave(A,3),:split)
  "0 01111101 00010000000000000000000"
  "0 01111001 11110000000000000000000"
  ```
- 
- ## Installation
- 
- BitInformation.jl is not registered yet in the Julia Registry, hence do
- ```julia
- julia> ] add https://github.com/milankl/BitInformation.jl
- ```
- where `]` opens the package manger.
