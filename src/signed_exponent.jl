@@ -9,8 +9,7 @@ julia> bitstring.(signed_exponent([10f0]),:split)[1]
 
 In the former the exponent 3 is interpret from 0b10000010=130 via subtraction of
 the exponent bias of Float32 = 127. In the latter the exponent is inferred from
-sign bit (0) and a magnitude represetation 2^1 + 2^1 = 3.
-"""
+sign bit (0) and a magnitude represetation 2^1 + 2^1 = 3."""
 function signed_exponent!(A::Array{T}) where {T<:Union{Float16,Float32,Float64}}
 
     # sign&fraction mask

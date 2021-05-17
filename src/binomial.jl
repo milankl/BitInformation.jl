@@ -1,4 +1,4 @@
-using Distributions: quantile, Normal
+import Distributions: quantile, Normal
 
 """
 ```
@@ -19,4 +19,7 @@ function binom_confidence(n::Int,c::Real)
     return 0.5 + quantile(Normal(),1-(1-c)/2)/(2*sqrt(n))
 end
 
-
+function binom_freeentropy(n::Int,c::Real,base::Real=2)
+    p = binom_confidence(n,c)
+    return 1 - entropy([p,1-p],base)
+end
