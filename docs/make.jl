@@ -12,3 +12,7 @@ makedocs(
             "Rounding"=>"rounding.md",
             "Function index"=>"functions.md"]
 )
+
+deploydocs(
+    repo = "github.com/milankl/BitInformation.jl.git",
+)
