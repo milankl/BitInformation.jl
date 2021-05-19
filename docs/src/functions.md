@@ -15,4 +15,5 @@ bitbacktranspose(::AbstractArray)
 xor_delta(::Array{AbstractFloat,1})
 unxor_delta(::Array{AbstractFloat,1})
 signed_exponent(::Array{Float32})
+signed_exponent!(::Array{Float32})
 ```
