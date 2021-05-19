@@ -15,4 +15,5 @@ makedocs(
 
 deploydocs(
     repo = "github.com/milankl/BitInformation.jl.git",
+    devbranch = "main"
 )
