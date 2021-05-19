@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Bitwise information · BitInformation.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">BitInformation.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Bitwise information</a><ul class="internal"><li><a class="tocitem" href="#Bitpattern-entropy"><span>Bitpattern entropy</span></a></li><li><a class="tocitem" href="#Bit-count-entropy"><span>Bit count entropy</span></a></li><li><a class="tocitem" href="#Bit-pair-count"><span>Bit pair count</span></a></li><li><a class="tocitem" href="#Bit-conditional-entropy"><span>Bit conditional entropy</span></a></li><li><a class="tocitem" href="#Mutual-information"><span>Mutual information</span></a></li><li><a class="tocitem" href="#Real-bitwise-information"><span>Real bitwise information</span></a></li><li><a class="tocitem" href="#Multi-dimensional-real-information"><span>Multi-dimensional real information</span></a></li><li><a class="tocitem" href="#Redundancy"><span>Redundancy</span></a></li><li><a class="tocitem" href="#Preserved-information"><span>Preserved information</span></a></li><li><a class="tocitem" href="#Significance-of-information"><span>Significance of information</span></a></li></ul></li><li><a class="tocitem" href="../transformations/">Transformations</a></li><li><a class="tocitem" href="../rounding/">Rounding</a></li><li><a class="tocitem" href="../functions/">Function index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Bitwise information</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Bitwise information</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/milankl/BitInformation.jl/blob/master/docs/src/bitinformation.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Bitwise-information-content-analysis"><a class="docs-heading-anchor" href="#Bitwise-information-content-analysis">Bitwise information content analysis</a><a id="Bitwise-information-content-analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Bitwise-information-content-analysis" title="Permalink"></a></h1><h2 id="Bitpattern-entropy"><a class="docs-heading-anchor" href="#Bitpattern-entropy">Bitpattern entropy</a><a id="Bitpattern-entropy-1"></a><a class="docs-heading-anchor-permalink" href="#Bitpattern-entropy" title="Permalink"></a></h2><p>An <span>$n$</span>-bit number format has  bitpatterns available to encode a real number.  For most data arrays, not all bitpatterns are used at uniform probability.  The bitpattern entropy is the  <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">Shannon information entropy</a> <span>$H$</span>, in units of bits, calculated from the probability <span>$p_i$</span> of each bitpattern </p><p class="math-container">\[H = -\sum_{i=1}^{2^n}p_i \log_2(p_i)\]</p><p>The bitpattern entropy is <span>$H \leq n$</span> and maximised to <span>$n$</span> bits for a uniform distribution. The free entropy is the difference <span>$n-H$</span>.</p><p>In BitInformation.jl, the bitpattern entropy is calculated via <code>bitpattern_entropy(::Array)</code></p><pre><code class="language-julia">julia&gt; A = rand(Float32,100000000);
+
+julia&gt; bitpattern_entropy(A)
+22.938590744784577</code></pre><p>Here, the entropy is about 23 bit, meaning that <code>9</code> bits are effectively unused. This is because <code>rand</code> samples in <code>[1,2)</code>, so that the sign and exponent bits are always <code>0 01111111</code> followed by some random significant bits.</p><p>The function <code>bitpattern_entropy</code> is based on sorting the array <code>A</code>. While this avoids the allocation of a bitpattern histogram (which would make the function unsuitable for anything larger than 32 bits) it has to allocate a sorted version of <code>A</code>.</p><h2 id="Bit-count-entropy"><a class="docs-heading-anchor" href="#Bit-count-entropy">Bit count entropy</a><a id="Bit-count-entropy-1"></a><a class="docs-heading-anchor-permalink" href="#Bit-count-entropy" title="Permalink"></a></h2><p>The Shannon information entropy <span>$H$</span>, in unit of bits, takes for a bitstream <span>$b=b_1b_2...b_k...b_l$</span>, i.e. a sequence of bits of length <span>$l$</span>, the form</p><p class="math-container">\[H(b) = -p_0 \log_2(p_0) - p_1\log_2(p_1)\]</p><p>with <span>$p_0,p_1$</span> being the probability of a bit <span>$b_k$</span> in <span>$b$</span> being 0 or 1. The entropy is maximised to 1 bit for equal probabilities <span>$p_0 = p_1 = \tfrac{1}{2}$</span> in <span>$b$</span>. The function <code>bitcount(A::Array)</code> counts all occurences of the 1-bit in every bit-position in every element of <code>A</code>. E.g.</p><pre><code class="language-julia">julia&gt; bitstring.(A)        # 5-elemenet Vector{UInt8}
+5-element Array{String,1}:
+ &quot;10001111&quot;
+ &quot;00010111&quot;
+ &quot;11101000&quot;
+ &quot;10100100&quot;
+ &quot;11101011&quot;
+
+julia&gt; bitcount(A)
+8-element Array{Int64,1}:
+ 4                          # number of 1-bits in the first bit of UInt8
+ 2                          # in the second bit position
+ 3                          # etc.
+ 1
+ 3
+ 3
+ 3
+ 3</code></pre><p>The first bit of elements (here: <code>UInt8</code>) in <code>A</code> are 4 times <code>1</code> and so 1 times <code>0</code>, etc. In contrast, elements drawn from a uniform distribution U(0,1)</p><pre><code class="language-julia">julia&gt; A = rand(Float32,100000);
+
+julia&gt; bitcount(A)
+32-element Array{Int64,1}:
+      0
+      0
+ 100000
+ 100000
+      ⋮
+  37411
+  25182
+      0</code></pre><p>have never a sign bit that is <code>1</code>, but the 2nd and third exponent bit is always <code>1</code>. The last significant bits in <code>rand</code> do not occur at 50% chance, which is due to the pseudo-random number generator (see a discussion <a href="https://sunoru.github.io/RandomNumbers.jl/dev/man/basics/#Conversion-to-Float">here</a>).</p><p>Once the bits in an array are counted, the respective probabilities <span>$p_0,p_1$</span> can be calculated and the entropy derived. The function <code>bitcount_entropy(A::Array)</code> does that</p><pre><code class="language-julia">julia&gt; A = rand(UInt8,100000);          # entirely random bits
+julia&gt; Elefridge.bitcountentropy(A)
+8-element Array{Float64,1}:             # entropy is for every bit position ≈ 1
+ 0.9999998727542938
+ 0.9999952725717266
+ 0.9999949724904816
+ 0.9999973408228667
+ 0.9999937649515901
+ 0.999992796900212
+ 0.9999970566115759
+ 0.9999998958374157</code></pre><p>This converges to 1 for larger arrays.</p><h2 id="Bit-pair-count"><a class="docs-heading-anchor" href="#Bit-pair-count">Bit pair count</a><a id="Bit-pair-count-1"></a><a class="docs-heading-anchor-permalink" href="#Bit-pair-count" title="Permalink"></a></h2><p>The <code>bitpaircount(A::Array)</code> function returns a <code>4xn</code> (with <code>n</code> being the number of bits in every element of <code>A</code>) array, the counts the occurrences of <code>00</code>,<code>01</code>,<code>10</code>,<code>11</code> for all bit-positions in <code>a in A</code> across all elements <code>a</code> in <code>A</code>. For a length <code>N</code> of array <code>A</code> (one or multi-dimensional) the maximum occurrence is <code>N-1</code>. E.g.</p><pre><code class="language-julia">julia&gt; A = rand(UInt8,5);
+julia&gt; bitstring.(A)
+5-element Array{String,1}:
+ &quot;01000010&quot;
+ &quot;11110110&quot;
+ &quot;01010110&quot;
+ &quot;01111111&quot;
+ &quot;00010100&quot;
+
+julia&gt; bitpaircount(A)
+4×8 Array{Int64,2}:
+ 2  0  0  0  2  0  0  2    # occurences of `00` in the n-bits of UInt8
+ 1  0  2  1  1  1  0  1    # occurences of `01`
+ 1  1  2  0  1  0  1  1    # occurences of `10`
+ 0  3  0  3  0  3  3  0    # occurences of `11`</code></pre><p>The first bit of elements in <code>A</code> is as a sequence <code>01000</code>. Consequently, <code>00</code> occurs 2x, <code>01</code> and <code>10</code> once each, and <code>11</code> does not occur. Multi-dimensional arrays are unravelled into a vector, following Julia&#39;s memory layout (column-major).</p><h2 id="Bit-conditional-entropy"><a class="docs-heading-anchor" href="#Bit-conditional-entropy">Bit conditional entropy</a><a id="Bit-conditional-entropy-1"></a><a class="docs-heading-anchor-permalink" href="#Bit-conditional-entropy" title="Permalink"></a></h2><p>Based on <code>bitpaircount</code> we can calculate the conditional entropy of the state of one bit given the state of the previous bit (previous meaning in the same bit position but in the previous element in the array <code>A</code>). In the previous example we obtain</p><pre><code class="language-julia">julia&gt; bit_condprobability(A)
+4×8 Array{Float64,2}:
+ 0.666667  NaN     0.0  0.0  0.666667  0.0  NaN     0.666667
+ 0.333333  NaN     1.0  1.0  0.333333  1.0  NaN     0.333333
+ 1.0         0.25  1.0  0.0  1.0       0.0    0.25  1.0
+ 0.0         0.75  0.0  1.0  0.0       1.0    0.75  0.0</code></pre><p>Given the previous bit being <code>0</code> there is a 2/3 chance that th next bit is a <code>0</code> too, and a 1/3 change that the next bit is a <code>1</code>, i.e. <span>$p_{00} = p(\text{next}=0|\text{previous}=0) = 2/3$</span>, and <span>$p_{10} = p(1|0) = \tfrac{1}{3}$</span>, such that <span>$p(0|0)+p(1|0)=1$</span> always (which are the marginal probabilities from below), if not <code>NaN</code>, and similarly for <span>$p(0|1)$</span> and <span>$p(1|1)$</span>.</p><p>The conditional entropies <span>$H_0,H_1$</span> are conditioned on the state of the previous bit <span>$b_{j-1}$</span> being 0 or 1</p><p class="math-container">\[\begin{aligned}
+H_0 &amp;= -p_{00}\log_2(p_{00}) - p_{01}\log_2(p_[01]) \\
+H_1 &amp;= -p_{10}\log_2(p_{10}) - p_{11}\log_2(p_[11]) \\
+\end{aligned}\]</p><p>The conditional entropy is maximised to 1 bit for bitstreams where the probability of a bit being 0 or 1 does not depend on the state of the previous bit, which is here defined as <em>false information</em>.</p><pre><code class="language-julia">julia&gt; r = rand(Float32,100_000)
+julia&gt; H₀,H₁ = bit_condentropy(r)
+julia&gt; H₀
+32-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.07559467763419292
+ 0.5214998930042997
+ 0.9684130809383832
+ ⋮
+ 0.9997866754890564
+ 0.999747731180627
+ 0.999438123786493
+ 0.9968145441905049
+ 0.9878425610244357
+ 0.9528602299665989
+ 0.8124289058679582
+ 0.0</code></pre><p>Sign and the first exponent bits have 0 conditional entropy, which increases to 1 bit for the fully random significant bits. The last significant bits have lower conditional entropy due to shortcomings in the pseudo random generator in <code>rand</code>, see a discussion <a href="https://sunoru.github.io/RandomNumbers.jl/dev/man/basics/#Conversion-to-Float">here</a>.</p><h2 id="Mutual-information"><a class="docs-heading-anchor" href="#Mutual-information">Mutual information</a><a id="Mutual-information-1"></a><a class="docs-heading-anchor-permalink" href="#Mutual-information" title="Permalink"></a></h2><p>The mutual information of two bitstreams (which can be, for example, two arrays, or adjacent  elements in one array) <span>$r = r_1r_2...r_k...r_l$</span> and <span>$s = s_1s_2...s_k...s_l$</span> is defined via the joint probability mass function <span>$p_{rs}$</span> which here takes the form of a 2x2 matrix</p><p class="math-container">\[p_{rs} = \begin{pmatrix}p_{00} &amp; p_{01} \\ p_{10} &amp; p_{11} \end{pmatrix}\]</p><p>with <span>$p_{ij}$</span> being the probability that the bits are in the state <span>$r_k=i$</span> and <span>$s_k = j$</span> simultaneously and <span>$p_{00}+p_{01}+p_{10}+p_{11} = 1$</span>. The marginal probabilities follow as column or row-wise additions in <span>$p_{rs}$</span>, e.g. the probability that <span>$r_k = 0$</span> is <span>$p_{r=0} = p_{00} + p_{01}$</span>. The mutual information <span>$M(r,s)$</span> of the two bitstreams <span>$r,s$</span> is then</p><p class="math-container">\[M(r,s) = \sum_{r=0}^1 \sum_{s=0}^1 p_{rs} \log_2 \left( \frac{p_{rs}}{p_{r=r}p_{s=s}}\right)\]</p><p>The function <code>bitinformation(::Array{T,N},::Array{T,N})</code> calculates <span>$M$</span> as</p><pre><code class="language-julia">julia&gt; r = rand(Float32,100_000)    # [0,1) random float32s
+julia&gt; s = shave(r,15)              # remove information in sbit 16-23 by setting to 0
+julia&gt; bitinformation(r,s)
+32-element Vector{Float64}:
+ 0.0
+ ⋮
+ 0.9999935941359982                 # sbit 12: 1 bit of mutual information
+ 0.9999912641753561                 # sbit 13: same
+ 0.9999995383375376                 # sbit 14: same
+ 0.9999954191498579                 # sbit 15: same
+ 0.0                                # sbit 16: always 0 in s, but random in r: M=0 bits
+ 0.0                                # sbit 17: same
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0                                # sbit 23</code></pre><h2 id="Real-bitwise-information"><a class="docs-heading-anchor" href="#Real-bitwise-information">Real bitwise information</a><a id="Real-bitwise-information-1"></a><a class="docs-heading-anchor-permalink" href="#Real-bitwise-information" title="Permalink"></a></h2><p>The mutual information of bits from adjacent bits is the <code>bitwise real information content</code> and derived as follows. For the two bitstreams <span>$r,s$</span> being the preceding and succeeding bits (for example in space or time) in a single bitstream <span>$b$</span>, i.e. <span>$r=b_1b_2...b_{l-1}$</span> and <span>$s=b_2b_3...b_l$</span> the unconditional entropy is then effectively <span>$H = H(r) = H(s)$</span> for <span>$l$</span> being very large. We then can write the mutual information <span>$M(r,s)$</span> between adjacent bits also as </p><p class="math-container">\[I = H - q_0H_0 - q_1H_1\]</p><p>which is the real information content <span>$I$</span>. This definition is similar to Jeffress et al. (2017) [1], but avoids an additional assumption of an uncertainty measure. This defines the real information as the entropy minus the false information.  For bitstreams with either <span>$p_0 = 1$</span> or <span>$p_1 = 1$</span>, i.e. all bits are either 0 or 1, the entropies are zero <span>$H = H_0 = H_1 = 0$</span> and we may refer to the bits in the bitstream as being unused. In the case where <span>$H &gt; p_0H_0 + p_1H_1$</span>, the preceding bit is a predictor for the succeeding bit which means that the bitstream contains real information (<span>$I &gt; 0$</span>).</p><p>The computation of <span>$I$</span> is implemented in <code>bitinformation(::Array)</code> </p><pre><code class="language-julia">julia&gt; A = rand(UInt8,1000000)  # fully random bits
+julia&gt; bitinformation(A)
+8-element Array{Float64,1}:
+ 0.0                            # real information = 0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><p>The information of random uniform bits is 0 as the knowledge of a given bit does not provide any information for the succeeding bits. However, correlated arrays (which we achieve here by sorting)</p><pre><code class="language-julia">julia&gt; A = rand(Float32,1000000)
+julia&gt; sort!(A)
+julia&gt; bitinformation(A)
+32-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.00046647589813905157
+ 0.06406479945998214
+ 0.5158447841492068
+ 0.9704486460488391
+ 0.9150881582169795
+ 0.996120575536068
+ 0.9931335810218149
+ ⋮
+ 0.15992667263039423
+ 0.0460430997651915
+ 0.006067325343418917
+ 0.0008767479258913191
+ 0.00033132201520535975
+ 0.0007048623462190817
+ 0.0025481588434255187
+ 0.0087191715755926
+ 0.028826838913308506
+ 0.07469492765760763
+ 0.0</code></pre><p>have only zero information in the sign (unused for random uniform distribution U(0,1)), and in the first exponent bits (also unused due to limited range) and in the last significant bit (flips randomly). The information is maximised to 1 bit for the last exponent and the first significant bits, as knowing the state of such a bit one can expect the next (or previous) bit to be the same due to the correlation.</p><p>[1] Jeffress, S., Düben, P. &amp; Palmer, T. <em>Bitwise efficiency in chaotic models</em>. <em>Proc. R. Soc. Math. Phys. Eng. Sci.</em> 473, 20170144 (2017).</p><h2 id="Multi-dimensional-real-information"><a class="docs-heading-anchor" href="#Multi-dimensional-real-information">Multi-dimensional real information</a><a id="Multi-dimensional-real-information-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-dimensional-real-information" title="Permalink"></a></h2><p>The real information content <span>$I_m$</span>  for an <span>$m$</span>-dimensional array <span>$A$</span> is the sum of the real information along the  dimensions. Let <span>$b_j$</span> be a bitstream obtained by unravelling a given bitposition in  along its <span>$j$</span>-th dimension. Although the unconditional entropy <span>$H$</span> is unchanged along the <span>$m$</span>-dimensions, the conditional entropies <span>$H_0,H_1$</span> change as the preceding and succeeding bit is found in another dimension, e.g. <span>$b_2$</span> is obtained by re-ordering <span>$b_1$</span>. Normalization by <span>$\tfrac{1}{m}$</span> is applied to <span>$I_m$</span> such that the maximum information is 1 bit in <span>$I_m^*$</span></p><p class="math-container">\[I_m^* = H - \frac{p_0}{m}\sum_{j=1}^mH_0(b_j) - \frac{p_1}{m}\sum_{j=1}^mH_1(b_j)\]</p><p>This is implemented in BitInformation.jl as <code>bitinformation(::Array{T,N},:all_dimensions)</code>, e.g.</p><pre><code class="language-julia">julia&gt; A = rand(Float32,100,200,300)    # a 3D array
+julia&gt; sort!(A,dims=1)                  # sort to create some auto-corelation
+julia&gt; bitinformation(A,:all_dimensions)
+32-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 6.447635701154324e-7
+ 0.014292670110681693
+ 0.31991625275425073
+ 0.5440816091704278
+ 0.36657938793446365
+ 0.2533186226597825
+ 0.13051374121057438
+ ⋮
+ 0.0
+ 0.0
+ 8.687738656254496e-7
+ 6.251449893598012e-6
+ 5.0038146715651134e-5
+ 0.0003054976017733783
+ 0.0015377166906772044
+ 0.006581160530812665
+ 0.022911924843179426
+ 0.06155167545633838
+ 0.0</code></pre><p>which is equivalent to</p><pre><code class="language-julia">julia&gt; bitinformation(A,:all_dimensions) ≈ 1/3*(bitinformation(A,dims=1)+
+                                               bitinformation(A,dims=2)+
+                                               bitinformation(A,dims=3))
+true</code></pre><p>The keyword <code>dims</code> will permute the dimensions in <code>A</code> to calcualte the information in the specified dimensions. By default <code>dims=1</code>, which uses the ordering of the bits as they are layed out in memory.</p><h2 id="Redundancy"><a class="docs-heading-anchor" href="#Redundancy">Redundancy</a><a id="Redundancy-1"></a><a class="docs-heading-anchor-permalink" href="#Redundancy" title="Permalink"></a></h2><p>Redundancy <span>$R$</span> is defined as the symmetric normalised mutual information <span>$M(r,s)$</span></p><p class="math-container">\[R(r,s) = \frac{2M(r,s)}{H(r) + H(s)}\]</p><p><code>R</code> is the redundancy of information of <span>$r$</span> in <span>$s$</span> (and vice versa). <span>$R = 1$</span> for identical bitstreams <span>$r = s$</span>, but <span>$R = 0$</span> for statistically independent bitstreams.</p><p>BitInformation.jl implements the redundancy calculation via <code>redundancy(::Array{T,N},::Array{T,N})</code> where the inputs have to be of same size and element type <code>T</code>. For example, shaving off some of the last significant bits will set the redundancy for those to 0, but redundancy is 1 for all bitstreams which are identical</p><pre><code class="language-julia">julia&gt; r = rand(Float32,100_000)    # random data
+julia&gt; s = shave(r,7)               # keep only sign, exp and sbits 1-7
+julia&gt; redundancy(r,s)
+32-element Vector{Float64}:
+ 0.0                                # 0 redundancy as entropy = 0
+ 0.0
+ 0.0
+ 0.0
+ 0.9999999999993566                 # redundancy 1 as bitstreams are identical
+ 0.9999999999999962
+ 1.0
+ 1.0000000000000002
+  ⋮
+ 0.0                                # redundancy 0 as information lost in shave
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><h2 id="Preserved-information"><a class="docs-heading-anchor" href="#Preserved-information">Preserved information</a><a id="Preserved-information-1"></a><a class="docs-heading-anchor-permalink" href="#Preserved-information" title="Permalink"></a></h2><p>The preserved information <span>$P(r,s)$</span> between two bitstreams <span>$r,s$</span> where <span>$s$</span> approximates <span>$r$</span> is the redundancy-weighted real information <span>$I$</span></p><p class="math-container">\[P(r,s) = R(r,s)I(r)\]</p><p>The information loss <span>$L$</span> is <span>$1-P$</span> and represents the unpreserved information of <span>$r$</span> in <span>$s$</span>. In most cases we are interested in the preserved information of an array <span>$X = (x_1,x_2,...,x_q,...,x_n)$</span> of bitstreams  when approximated by a previously compressed array <span>$Y = (y_1,y_2,...,y_q,...,y_n)$</span>. For an array <span>$A$</span> of floats with <span>$n=32$</span> bit, for example, <span>$x_1 is the bitstream of all sign bits unravelled along a given dimension (e.g. longitudes) and $x_{32}$</span> is the bitstream of the last mantissa bits. The redundancy <span>$R(X,Y)$</span> and the real information <span>$I(X)$</span> is then calculated for each bit position <span>$q$</span> individually, and the preserved information <span>$P$</span> is the redundancy-weighted mean of the real information in <span>$X$</span></p><p class="math-container">\[P(X,Y) = \frac{\sum_{q=1}^n R(x_q,y_q)I(x_q)}{\sum_{q=1}^n I(x_q)}\]</p><p>The quantity <span>$\sum_{q=1}^n I(x_q)$</span> is the total information in <span>$X$</span> and therefore also in <span>$A$</span>.  The redundancy is <span>$R=1$</span> for bits that are unchanged during rounding and <span>$R=0$</span> for bits that are round to zero. Example</p><pre><code class="language-julia">julia&gt; r = rand(Float32,100_000)    # random bits
+julia&gt; sort!(r)                     # sort to introduce auto-correlation &amp; statistical dependence of bits
+julia&gt; s = shave(r,7)               # s is an approximation to r, shaving off sbits 8-23
+julia&gt; R = redundancy(r,s)          
+julia&gt; I = bitinformation(r)
+julia&gt; P = (R&#39;*I)/sum(I)            # preserved information of r in s
+0.9087255894613658                  # = 91%</code></pre><h2 id="Significance-of-information"><a class="docs-heading-anchor" href="#Significance-of-information">Significance of information</a><a id="Significance-of-information-1"></a><a class="docs-heading-anchor-permalink" href="#Significance-of-information" title="Permalink"></a></h2><p>For an entirely independent and approximately equal occurrence of bits in a bitstream of length <span>$l$</span>, the probabilities <span>$p_0,p_1$</span> of a bit being 0 or 1 approach <span>$p_0\approxp_1\approx\tfrac{1}{2}$</span>, but they are in practice not equal for <span>$l &lt; \infty$</span>. Consequently, the entropy is smaller than 1, but only insignificantly. The probability <span>$p_1$</span> of successes in the binomial distribution (with parameter <span>$p=\tfrac{1}{2}$</span>) with <span>$l$</span> trials (using the normal approximation for large <span>$l$</span>) is</p><p class="math-container">\[p_1 = \frac{1}{2} + \frac{z}{2\sqrt{l}}\]</p><p>where <span>$z$</span> is the <span>$1-\tfrac{1}{2}(1-c)$</span> quantile at confidence level <span>$c$</span> of the standard normal distribution. For <span>$c=0.99$</span>, corresponding to a 99%-confidence level which is used as default here, <span>$z=2.58$</span> and for <span>$l=10^7$</span> a probability <span>$\tfrac{1}{2} \leq p \leq p_1 = 0.5004$</span> is considered insignificantly different from equal occurrence <span>$p_0 = p_1$</span>. This is implemented as <code>binom_confidence(l,c)</code></p><pre><code class="language-julia">julia&gt; BitInformation.binom_confidence(10_000_000,0.99)
+0.500407274373151</code></pre><p>The associated free entropy <span>$H_f$</span> in units of bits follows as</p><p class="math-container">\[H_f = 1 - p_1\log_2(p_1) - (1-p_1)\log_2(1-p_1)\]</p><p>And we consider real information below <span>$H_f$</span> as insignificantly different from 0 and set the real information <span>$I = 0$</span>. The calculation of <span>$H_f$</span> is implemented as <code>binom_free_entropy(l,c,base=2)</code></p><pre><code class="language-julia">julia&gt; BitInformation.binom_free_entropy(10_000_000,0.99)
+4.786066739592698e-7</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../transformations/">Transformations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 19 May 2021 19:13">Wednesday 19 May 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
