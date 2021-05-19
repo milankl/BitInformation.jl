@@ -1,6 +1,5 @@
 # BitInformation.jl
 [![CI](https://github.com/milankl/BitInformation.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/milankl/BitInformation.jl/actions/workflows/CI.yml)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://milankl.github.io/BitInformation.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://milankl.github.io/BitInformation.jl/dev)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4774191.svg)](https://doi.org/10.5281/zenodo.4774191)
 
@@ -20,7 +19,7 @@ or contact me. Contributions are highly appreciated!
 ## Functionality
 
 For an overview of the functionality and explanation see the
-[documentation](https://milankl.github.io/BitInformation.jl/stable).
+[documentation](https://milankl.github.io/BitInformation.jl/dev).
 
 ## Installation
 
