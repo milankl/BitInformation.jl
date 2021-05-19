@@ -1,7 +1,7 @@
 name = "BitInformation"
 uuid = "de688a37-743e-4ac2-a6f0-bd62414d1aa7"
 authors = ["Milan <milankloewer@gmx.de> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
