@@ -86,12 +86,29 @@ end
 
 """Calculates the conditional entropy for 00,01,10,11 for every bit position across
 all elements of A."""
-function bit_condentropy(A::Array{T}) where {T<:Union{Integer,AbstractFloat}}
+function bit_condentropy(   A::Array{T},
+                            set_zero_insignificant::Bool=true,
+                            confidence::Real=0.99) where {T<:Union{Integer,AbstractFloat}}
+    
     pcond = bit_condprobability(A)
+
+    # set NaN (occurs when occurences n=0) 0*-Inf = 0 here.
     pcond[isnan.(pcond)] .= 0
-    pcond /= 2      # divide by 2 as p(0|0)+p(1|0)+p(0|1)+p(1|1)=2
-    e = [abs(entropy(pcond[:,i],2)) for i in 1:size(pcond)[2]]
-    return e
+
+    # conditional entropy H given bit = 0 (H0) and bit = 1 (H1)
+    H0 = [entropy([p00,p01],2) for (p00,p01) in zip(pcond[1,:],pcond[2,:])]
+    H1 = [entropy([p10,p11],2) for (p10,p11) in zip(pcond[3,:],pcond[4,:])]
+
+    # set insignficant to zero
+    if set_zero_insignificant
+        # get chance p for 1 (or 0) from binom distr
+        p = binom_confidence(length(A),confidence)  
+        I₀ = 1 - entropy([p,1-p],2)         # free entropy of random [bit]
+        H0[H0 .<= I₀] .= 0                  # set insignficant to zero
+        H1[H1 .<= I₀] .= 0                  
+    end
+
+    return H0,H1
 end
 
 function bitinformation(A::AbstractArray,dims::Symbol)

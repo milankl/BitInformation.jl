@@ -9,8 +9,8 @@ for lossless compression algorithms.
     that Julia will not know about this and interpret a value incorrectly. You will have to explicitly execute
     the backtransform 
     ```julia
-    julia> A = [0f0,1f0]
-    julia> At = bittranspose(A)
+    julia> A = [0f0,1f0]         # 0 and 1
+    julia> At = bittranspose(A)  # are transposed into 1f-35 and 0
     2-element Vector{Float32}:
     1.0026967f-35
     0.0
