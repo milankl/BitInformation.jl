@@ -14,7 +14,7 @@ module BitInformation
     include("bitstring.jl")
     include("bittranspose.jl")
     include("shave_set_groom.jl")
-    include("round.jl")
+    include("round_nearest.jl")
     include("xor_delta.jl")
     include("signed_exponent.jl")
     include("bit_information.jl")
