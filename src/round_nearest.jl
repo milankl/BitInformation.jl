@@ -35,9 +35,9 @@ end
 
 """IEEE's round to nearest tie to even for Float16/32/64."""
 function Base.round(x::T,               # Float to be rounded
-                    ulp_half::UIntT,    # obtain from get_ulp_half, get_? etc.
-                    shift::Integer,     
-                    keepmask::UIntT
+                    ulp_half::UIntT,    # obtain from get_ulp_half,
+                    shift::Integer,     # get_shift, and
+                    keepmask::UIntT     # get_keep_mask
                     ) where {T<:Base.IEEEFloat,UIntT<:Unsigned}
     ui = reinterpret(UIntT,x)                       # bitpattern as uint
     ui += ulp_half + ((ui >> shift) & one(UIntT))   # add ulp/2 with tie to even
@@ -70,7 +70,7 @@ function round!(X::AbstractArray{T},            # any array with element type T
     return X
 end
 
-"""IEEE's round to nearest tie to even for a float array `X` and returns a rounded copy of `X`."""
+"""IEEE's round to nearest tie to even for a float array `X` which returns a rounded copy of `X`."""
 function Base.round(X::AbstractArray{T},        # any array with element type T
                     keepbits::Integer           # mantissa bits to keep
                     ) where {T<:Base.IEEEFloat} # constrain element type to Float32/64
@@ -80,7 +80,9 @@ function Base.round(X::AbstractArray{T},        # any array with element type T
     return Xcopy
 end
 
-
+"""Checks a given `mantissabit` of `x` for eveness. 1=odd, 0=even. Mantissa bits 
+are positive for the mantissa (`mantissabit = 1` is the first mantissa bit), `mantissa = 0`
+is the last exponent bit, and negative for the other exponent bits."""
 function Base.iseven(x::T,
                     mantissabit::Integer
                     ) where {T<:Base.IEEEFloat}
@@ -89,4 +91,7 @@ function Base.iseven(x::T,
     return 0x0 == reinterpret(typeof(mask),x) & mask
 end
 
+"""Checks a given `mantissabit` of `x` for oddness. 1=odd, 0=even. Mantissa bits 
+are positive for the mantissa (`mantissabit = 1` is the first mantissa bit), `mantissa = 0`
+is the last exponent bit, and negative for the other exponent bits."""
 Base.isodd(x::T,mantissabit::Integer) where {T<:Base.IEEEFloat} = ~iseven(x,mantissabit)

@@ -1,5 +1,27 @@
 using Test
 
+@testset "iseven isodd" begin
+    # check sign bits
+    @test iseven(1f0,-8)
+    @test isodd(-1f0,-8)
+    @test iseven(1.0,-11)
+    @test isodd(-1.0,-11)
+    @test iseven(Float16(1),-5)
+    @test isodd(Float16(-1),-5)
+
+    @test isodd(1.5f0,1)
+    @test isodd(1.5,1)
+    @test isodd(Float16(1.5),1)
+
+    @test iseven(1.25f0,1)
+    @test iseven(1.25,1)
+    @test iseven(Float16(1.25),1)
+
+    @test isodd(1.25f0,2)
+    @test isodd(1.25,2)
+    @test isodd(Float16(1.25),2)
+end
+
 @testset "Zero rounds to zero" begin
     for T in [Float16,Float32,Float64]
         for k in -5:50
@@ -103,4 +125,24 @@ end
 
     #     end
     # end
+end
+
+@testset "Round to nearest?" begin
+    N = 1000
+    for _ in 1:N
+        for (T,UIntT) in zip([Float16,Float32,Float64],
+                                [UInt16,UInt32,UInt64])
+            for k in 1:9
+                x = randn(T)
+                xr = round(x,k)
+
+                ulp = Base.sign_mask(T) >> (Base.exponent_bits(T)+k)
+                next_xr = reinterpret(T,reinterpret(UIntT,xr) + ulp)
+                prev_xr = reinterpret(T,reinterpret(UIntT,xr) - ulp)
+
+                @test abs(next_xr - x) >= abs(xr - x)
+                @test abs(prev_xr - x) >= abs(xr - x)
+            end
+        end
+    end 
 end
