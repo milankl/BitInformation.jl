@@ -179,7 +179,7 @@ end
 
 @testset "Information of random set to zero" begin
     for T in (UInt32,UInt64,Float32,Float64)
-        for N in [100,1000,10_000]
+        for N in [10_000,100_000]
             A = rand(T,N)
             # increase confidence here from the default 0.99 to avoid test failures
             # from false positives
