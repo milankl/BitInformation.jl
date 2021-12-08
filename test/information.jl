@@ -31,16 +31,16 @@ end
     # test the PRNG on uniformity
     N = 100_000
     H = bitcount_entropy(rand(UInt8,N))
-    @test all(isapprox.(H,ones(8),rtol=1e-4))
+    @test all(isapprox.(H,ones(8),rtol=5e-4))
 
     H = bitcount_entropy(rand(UInt16,N))
-    @test all(isapprox.(H,ones(16),rtol=1e-4))
+    @test all(isapprox.(H,ones(16),rtol=5e-4))
 
     H = bitcount_entropy(rand(UInt32,N))
-    @test all(isapprox.(H,ones(32),rtol=1e-4))
+    @test all(isapprox.(H,ones(32),rtol=5e-4))
 
     H = bitcount_entropy(rand(UInt64,N))
-    @test all(isapprox.(H,ones(64),rtol=1e-4))
+    @test all(isapprox.(H,ones(64),rtol=5e-4))
 
     # also for random floats
     H = bitcount_entropy(rand(N))
