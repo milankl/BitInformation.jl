@@ -126,7 +126,7 @@ end
     for T in [UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64]
         redun = redundancy(rand(T,N),rand(T,N))
         for r in redun
-            @test isapprox(0,r,atol=1e-3)
+            @test isapprox(0,r,atol=2e-3)
         end
     end
 
@@ -139,7 +139,7 @@ end
             if iszero(h)
                 @test iszero(r)
             else
-                @test isapprox(1,r,atol=1e-3)
+                @test isapprox(1,r,atol=2e-3)
             end
         end
     end
