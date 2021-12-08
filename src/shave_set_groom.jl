@@ -133,3 +133,17 @@ function groom(X::AbstractArray{Float64},nsb::Integer)
 
     return Y
 end
+
+kouzround(x::Union{Float32,Float64},nsb::Integer) = shave(2x-shave(x,nsb),nsb)
+
+function kouzround(x::AbstractArray{Float32},nsb::Integer)
+    y = similar(x)
+    mask = ~mask32(nsb)
+    for i in eachindex(x)
+        y[i] = shave(2x[i]-shave(x[i],mask),mask)
+    end
+    return y
+end
+
+"""Number of significant bits `nsb` given the number of significant digits `nsd`."""
+nsb(nsd::Integer) = Integer(ceil(log(10)/log(2)*nsd))
