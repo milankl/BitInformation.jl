@@ -1,4 +1,3 @@
-
 """Shift integer to push the mantissa in the right position. Used to determine
 round up or down in the tie case. `keepbits` is the number of mantissa bits to
 be kept (i.e. not zero-ed) after rounding."""
@@ -31,6 +30,16 @@ function get_keep_mask( ::Type{T},
     # convert to signed for arithmetic bitshift
     # trick to push in 1s from the left and 0s from the right
     return unsigned(signed(~Base.significand_mask(T)) >> keepbits)
+end
+
+"""Returns a mask that's `1` for a given `mantissabit` and `0` else. Mantissa bits 
+are positive for the mantissa (`mantissabit = 1` is the first mantissa bit), `mantissa = 0`
+is the last exponent bit, and negative for the other exponent bits."""
+function get_bit_mask(  ::Type{T},
+                        mantissabit::Integer
+                        ) where {T<:Base.IEEEFloat}
+    # push the sign mask (1000....) in the right position
+    return Base.sign_mask(T) >> (Base.exponent_bits(T) + mantissabit)
 end
 
 """IEEE's round to nearest tie to even for Float16/32/64."""
@@ -87,8 +96,8 @@ function Base.iseven(x::T,
                     mantissabit::Integer
                     ) where {T<:Base.IEEEFloat}
     
-    mask = Base.sign_mask(T) >> (Base.exponent_bits(T) + mantissabit)
-    return 0x0 == reinterpret(typeof(mask),x) & mask
+    bitmask = get_bit_mask(T,mantissabit)
+    return 0x0 == reinterpret(typeof(bitmask),x) & bitmask
 end
 
 """Checks a given `mantissabit` of `x` for oddness. 1=odd, 0=even. Mantissa bits 
