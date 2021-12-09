@@ -86,7 +86,7 @@ end
         for k in 0:20
             A = rand(T,200,300)
             Ar = round(A,k)
-            Ar2 = round(A,k)
+            Ar2 = round(Ar,k)
             @test Ar == Ar2
         end
     end

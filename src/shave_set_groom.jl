@@ -1,149 +1,136 @@
-"""Creates a UInt32-mask for the trailing non-significant bits of a
-Float32 number. `nsb` are the number of significant bits in the mantissa.
-E.g. mask(3) returns `00000000000011111111111111111111`,
-such that all but the first 3 significant bits can be masked."""
-mask32(nsb::Integer) = UInt32(2^(23-nsb)-1)
-
-"""Creates a UInt64-mask for the trailing non-significant bits of a
-Float64 number. `nsb` are the number of significant bits in the mantissa."""
-mask64(nsb::Integer) = UInt64(2^(52-nsb)-1)
-
-halfshavemask32(nsb::Integer) = UInt32(2^(23-nsb-1))
-halfshavemask64(nsb::Integer) = UInt64(2^(52-nsb-1))
-
-
-"""Shave trailing bits of a Float32 number to zero.
-Mask is UInt32 with 1 for the shaved bits, 0 for the retained bits."""
-function shave(x::Float32,mask::UInt32)
-    ui = reinterpret(UInt32,x)
-    ui &= mask
-    return reinterpret(Float32,ui)
+"""Bitshaving for floats. Sets trailing bits to 0 (round towards zero).
+`keepmask` is an unsigned integer with bits being `1` for bits to be kept,
+and `0` for those that are shaved off."""
+function shave( x::T,
+                keepmask::UIntT
+                ) where {T<:Base.IEEEFloat,UIntT<:Unsigned}
+    ui = reinterpret(UIntT,x)
+    ui &= keepmask              # set trailing bits to zero
+    return reinterpret(T,ui)
 end
 
-"""Shave trailing bits of a Float32 number to zero.
-Mask is UInt32 with 1 for the shaved bits, 0 for the retained bits."""
-function shave(x::Float64,mask::UInt64)
-    ui = reinterpret(UInt64,x)
-    ui &= mask
-    return reinterpret(Float64,ui)
+"""Halfshaving for floats. Replaces trailing bits with `1000...` a variant
+of round nearest whereby the representable numbers are halfway between those
+from shaving or IEEE's round nearest."""
+function halfshave( x::T,
+                    keepmask::UIntT,
+                    bitmask::UIntT
+                    ) where {T<:Base.IEEEFloat,UIntT<:Unsigned}
+    ui = reinterpret(UIntT,x)
+    ui &= keepmask      # set trailing bits to zero
+    ui |= bitmask       # set first trailing bit to 1
+    return reinterpret(T,ui)
 end
 
-function halfshave(x::Float32,mask::UInt32,hsmask::UInt32)
-    ui = reinterpret(UInt32,x)
-    ui &= mask      # set tail bits to zero
-    ui |= hsmask    # set most significant tail bit to one
-    return reinterpret(Float32,ui)
+"""Bitsetting for floats. Replace trailing bits with `1`s (round away from zero).
+`setmask` is an unsigned integer with bits being `1` for those that are set to one
+and `0` otherwise, such that the bits to keep are unaffected."""
+function set_one(   x::T,
+                    setmask::UIntT
+                    ) where {T<:Base.IEEEFloat,UIntT<:Unsigned}
+    ui = reinterpret(UIntT,x)
+    ui |= setmask      # set trailing bits to 1
+    return reinterpret(T,ui)
 end
 
-function halfshave(x::Float64,mask::UInt64,hsmask::UInt64)
-    ui = reinterpret(UInt64,x)
-    ui &= mask      # set tail bits to zero
-    ui |= hsmask    # set most significant tail bit to one
-    return reinterpret(Float64,ui)
+"""Bitshaving of a float `x` given `keepbits` the number of mantissa bits to keep
+after shaving."""
+function shave(x::T,keepbits::Integer) where {T<:Base.IEEEFloat}
+    return shave(x,get_keep_mask(T,keepbits))
 end
 
-"""Shave trailing bits of a Float32 number to zero.
-Providing `nsb` the number of retained significant bits, a mask is created
-and applied."""
-shave(x::Float32,nsb::Integer) = shave(x,~mask32(nsb))
-shave(x::Float64,nsb::Integer) = shave(x,~mask64(nsb))
-
-halfshave(x::Float32,nsb::Integer) = halfshave(x,~mask32(nsb),halfshavemask32(nsb))
-halfshave(x::Float64,nsb::Integer) = halfshave(x,~mask64(nsb),halfshavemask64(nsb))
-
-"""Shave trailing bits of a Float32 number to zero.
-In case no `sb` argument is applied for `shave`, shave 16 bits, retain 7."""
-shave(x::Float32) = shave(x,7)
-shave(x::Float64) = shave(x,12)
-
-halfshave(x::Float32) = halfshave(x,7)
-halfshave(x::Float64) = halfshave(x,12)
-
-"""Shave trailing bits of a Float32 array to zero.
-Creates the shave-mask only once and applies it to every element in `X`."""
-shave(X::AbstractArray{Float32},nsb::Integer) = shave.(X,~mask32(nsb))
-shave(X::AbstractArray{Float64},nsb::Integer) = shave.(X,~mask64(nsb))
-
-halfshave(X::AbstractArray{Float32},nsb::Integer) = halfshave.(X,~mask32(nsb),halfshavemask32(nsb))
-halfshave(X::AbstractArray{Float64},nsb::Integer) = halfshave.(X,~mask64(nsb),halfshavemask64(nsb))
-
-"""Set trailing bits of a Float32 number to one.
-Provided a UInt32 mask with 1 for bits to be set to one, and 0 else."""
-function set_one(x::Float32,mask::UInt32)
-    ui = reinterpret(UInt32,x)
-    ui |= mask
-    return reinterpret(Float32,ui)
+"""Halfshaving of a float `x` given `keepbits` the number of mantissa bits to keep
+after halfshaving."""
+function halfshave(x::T,keepbits::Integer) where {T<:Base.IEEEFloat}
+    return halfshave(x,get_keep_mask(T,keepbits),get_bit_mask(T,keepbits+1))
 end
 
-function set_one(x::Float64,mask::UInt64)
-    ui = reinterpret(UInt64,x)
-    ui |= mask
-    return reinterpret(Float64,ui)
+"""Bitsetting of a float `x` given `keepbits` the number of mantissa bits to keep
+after setting."""
+function set_one(x::T,keepbits::Integer) where {T<:Base.IEEEFloat}
+    return set_one(x,~get_keep_mask(T,keepbits))
 end
 
-"""Set trailing bits of Float32 number to one, given `nsb` number of significant
-bits retained. A mask is created and applied."""
-set_one(x::Float32,nsb::Integer) = set_one(x,mask32(nsb))
-set_one(x::Float64,nsb::Integer) = set_one(x,mask64(nsb))
+"""In-place version of `shave` for any array `X` with floats as elements."""
+function shave!(X::AbstractArray{T},            # any array with element type T
+                keepbits::Integer               # how many mantissa bits to keep
+                ) where {T<:Base.IEEEFloat}     # constrain element type to Float16/32/64
 
-"""Set trailing bits of a Float32 number to one.
-In case no `sb` argument is applied for `set_one`, set 16 bits, retain 7."""
-set_one(x::Float32) = set_one(x,7)
-set_one(x::Float64) = set_one(x,12)
+    keep_mask = get_keep_mask(T,keepbits)       # mask to zero trailing mantissa bits
 
-"""Set trailing bits of a Float32 number to one.
-Creates the setting-mask only once and applies it to every element in `X`."""
-set_one(X::AbstractArray{Float32},nsb::Integer) = set_one.(X,mask32(nsb))
-set_one(X::AbstractArray{Float64},nsb::Integer) = set_one.(X,mask64(nsb))
-
-"""Bit-grooming. Alternatingly apply bit-shaving and setting to a Float32 array."""
-function groom(X::AbstractArray{Float32},nsb::Integer)
-
-    Y = similar(X)          # preallocate output of same size and type
-    mask1 = mask32(nsb)     # mask for setting
-    mask0 = ~mask1          # mask for shaving
-    n = length(X)
-
-
-    @inbounds for i in 1:2:length(X)-1
-        Y[i] = shave(X[i],mask0)            # every second element is shaved
-        Y[i+1] = set_one(X[i+1],mask1)      # every other 2nd element is set
+    @inbounds for i in eachindex(X)             # apply rounding to each element
+        X[i] = shave(X[i],keep_mask)
     end
 
-    # for arrays of uneven length shave last element (as exempted from loop)
-    Y[end] = n % 2 == 1 ? shave(X[end],mask0) : Y[end]
-
-    return Y
+    return X
 end
 
-function groom(X::AbstractArray{Float64},nsb::Integer)
+"""In-place version of `halfshave` for any array `X` with floats as elements."""
+function halfshave!(X::AbstractArray{T},        # any array with element type T
+                    keepbits::Integer           # how many mantissa bits to keep
+                    ) where {T<:Base.IEEEFloat} # constrain element type to Float16/32/64
 
-    Y = similar(X)          # preallocate output of same size and type
-    mask1 = mask64(nsb)     # mask for setting
-    mask0 = ~mask1          # mask for shaving
+    keep_mask = get_keep_mask(T,keepbits)       # mask to zero trailing mantissa bits
+    bit_mask = get_bit_mask(T,keepbits+1)       # mask to set the first trailing bit to 1
+
+    @inbounds for i in eachindex(X)             # apply rounding to each element
+        X[i] = halfshave(X[i],keep_mask,bit_mask)
+    end
+
+    return X
+end
+
+"""In-place version of `set_one` for any array `X` with floats as elements."""
+function set_one!(  X::AbstractArray{T},        # any array with element type T
+                    keepbits::Integer           # how many mantissa bits to keep
+                    ) where {T<:Base.IEEEFloat} # constrain element type to Float16/32/64
+
+    set_mask = ~get_keep_mask(T,keepbits)       # mask to set trailing mantissa bits to 1
+    
+    @inbounds for i in eachindex(X)             # apply rounding to each element
+        X[i] = set_one(X[i],set_mask)
+    end
+
+    return X
+end
+
+"""Bitgrooming for a float arrays `X` keeping `keepbits` mantissa bits. In-place version
+that shaves/sets the elements of `X` alternatingly."""
+function groom!(X::AbstractArray{T},        # any array with element type T
+                keepbits::Integer           # how many mantissa bits to keep
+                ) where {T<:Base.IEEEFloat} # constrain element type to Float16/32/64
+
+    keep_mask = get_keep_mask(T,keepbits)   # mask to zero trailing mantissa bits
+    set_mask = ~keep_mask                   # mask to set trailing mantissa bits to 1
+    
     n = length(X)
 
     @inbounds for i in 1:2:n-1
-        Y[i] = shave(X[i],mask0)            # every second element is shaved
-        Y[i+1] = set_one(X[i+1],mask1)      # every other 2nd element is set
+        X[i] = shave(X[i],keep_mask)        # every second element is shaved
+        X[i+1] = set_one(X[i+1],set_mask)   # every other 2nd element is set
     end
 
     # for arrays of uneven length shave last element (as exempted from loop)
-    Y[end] = n % 2 == 1 ? shave(X[end],mask0) : Y[end]
+    @inbounds X[end] = n % 2 == 1 ? shave(X[end],keep_mask) : X[end]
 
-    return Y
+    return X
 end
 
-kouzround(x::Union{Float32,Float64},nsb::Integer) = shave(2x-shave(x,nsb),nsb)
+# Shave, halfshave, set_one, groom which returns a rounded copy of array `X` instead of
+# chaning its elements in-place.
+for func in (:shave,:halfshave,:set_one,:groom)
+    func! = Symbol(func,:!)
+    @eval begin
+        function $func( X::AbstractArray{T},            # any array with element type T
+                        keepbits::Integer               # how many mantissa bits to keep
+                        ) where {T<:Base.IEEEFloat}     # constrain element type to Float16/32/64
 
-function kouzround(x::AbstractArray{Float32},nsb::Integer)
-    y = similar(x)
-    mask = ~mask32(nsb)
-    for i in eachindex(x)
-        y[i] = shave(2x[i]-shave(x[i],mask),mask)
+            Xcopy = copy(X)                                 # copy to avoid in-place changes of X
+            $func!(Xcopy,keepbits)                          # in-place on X's copy
+            return Xcopy
+        end
     end
-    return y
 end
 
-"""Number of significant bits `nsb` given the number of significant digits `nsd`."""
-nsb(nsd::Integer) = Integer(ceil(log(10)/log(2)*nsd))
+# """Number of significant bits `nsb` given the number of significant digits `nsd`."""
+# nsb(nsd::Integer) = Integer(ceil(log(10)/log(2)*nsd))
