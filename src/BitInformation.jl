@@ -11,7 +11,7 @@ module BitInformation
         bitcount, bitcount_entropy, bitpaircount, bit_condprobability,
         bit_condentropy
 
-    import StatsBase.entropy
+    import StatsBase: entropy
 
     include("which_uint.jl")
     include("bitstring.jl")
