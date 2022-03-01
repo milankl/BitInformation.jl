@@ -5,7 +5,7 @@ module BitInformation
 
     export bittranspose, bitbacktranspose,
         xor_delta, unxor_delta, xor_delta!, unxor_delta!,
-        signed_exponent
+        signed_exponent, biased_exponent
     
     export bitinformation, mutual_information, redundancy, bitpattern_entropy,
         bitcount, bitcount_entropy, bitpaircount, bit_condprobability,
@@ -13,7 +13,7 @@ module BitInformation
 
     import StatsBase: entropy
 
-    include("which_uint.jl")
+    include("uinttypes.jl")
     include("bitstring.jl")
     include("bittranspose.jl")
     include("round_nearest.jl")
