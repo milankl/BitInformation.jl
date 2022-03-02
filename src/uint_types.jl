@@ -19,5 +19,3 @@ function Base.uinttype(n::Integer)
     n == 64 && return UInt64
     throw(error("Only n=8,16,32,64 bits supported."))
 end
-
-
