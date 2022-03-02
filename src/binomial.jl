@@ -16,7 +16,8 @@ julia> p₁ = BitInformation.binom_confidence(1000,0.95)
 ```
 about 53.1% heads (or tails)."""
 function binom_confidence(n::Int,c::Real)
-    return 0.5 + quantile(Normal(),1-(1-c)/2)/(2*sqrt(n))
+    p = 0.5 + quantile(Normal(),1-(1-c)/2)/(2*sqrt(n))
+    return min(1.0,p)
 end
 
 """
