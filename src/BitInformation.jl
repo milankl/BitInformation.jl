@@ -13,14 +13,15 @@ module BitInformation
 
     import StatsBase: entropy
 
-    include("uinttypes.jl")
+    include("uint_types.jl")
     include("bitstring.jl")
+    include("bitarray.jl")
     include("bittranspose.jl")
     include("round_nearest.jl")
     include("shave_set_groom.jl")
     include("xor_delta.jl")
     include("signed_exponent.jl")
-    include("bit_information.jl")
+    include("bit_count.jl")
     include("mutual_information.jl")
     include("bitpattern_entropy.jl")
     include("binomial.jl")
