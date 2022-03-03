@@ -12,6 +12,7 @@ module BitInformation
         bit_condentropy
 
     import StatsBase: entropy
+    import Distributions: quantile, Normal
 
     include("uint_types.jl")
     include("bitstring.jl")
@@ -25,5 +26,4 @@ module BitInformation
     include("mutual_information.jl")
     include("bitpattern_entropy.jl")
     include("binomial.jl")
-
 end

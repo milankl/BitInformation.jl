@@ -32,3 +32,35 @@ end
     @test H[1:5] == zeros(5)    # first bits never change
     @test all(isapprox.(H[16:55],ones(40),rtol=1e-4))
 end
+
+@testset "Bit pair count" begin
+    for T in (Float16,Float32,Float64)
+        N = 10_000
+        A = rand(T,N)
+        C1 = bitpair_count(A,A)     # count bitpairs with 2 equiv arrays
+        C2 = bitcount(A)            # compare to bits counted in that array
+
+        nbits = 8*sizeof(T)
+        for i in 1:nbits
+            @test C1[i,1,2] == 0    # no 01 pair for bitpair_count(A,A)
+            @test C1[i,2,1] == 0    # no 10
+            @test C1[i,1,1] + C1[i,2,2] == N    # 00 + 11 are all cases = N
+            @test C1[i,2,2] == C2[i]            # 11 is the same as bitcount(A)
+        end
+
+        Auint = reinterpret(Base.uinttype(T),A)
+        Buint = .~Auint                         # flip all bits in A
+
+        C3 = bitpair_count(Auint,Auint)
+        @test C1 == C3                          # same when called with uints
+
+        C4 = bitpair_count(Auint,Buint)
+        for i in 1:nbits
+            @test C4[i,1,2] + C4[i,2,1] == N    # 01, 10 are all cases = N
+            @test C1[i,1,1] == C4[i,1,2]        # 00 before is now 01
+            @test C1[i,2,2] == C4[i,2,1]        # 11 before is now 10
+            @test C4[i,1,1] == 0                # no 00
+            @test C4[i,2,2] == 0                # no 11
+        end
+    end
+end

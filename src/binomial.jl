@@ -1,5 +1,3 @@
-import Distributions: quantile, Normal
-
 """
 ```julia
 p₁ = binom_confidence(n::Int,c::Real)
@@ -17,7 +15,7 @@ julia> p₁ = BitInformation.binom_confidence(1000,0.95)
 about 53.1% heads (or tails)."""
 function binom_confidence(n::Int,c::Real)
     p = 0.5 + quantile(Normal(),1-(1-c)/2)/(2*sqrt(n))
-    return min(1.0,p)
+    return min(1.0,p)   # cap probability at 1 (only important for n small)
 end
 
 """

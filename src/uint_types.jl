@@ -9,13 +9,13 @@ Base.uinttype(::Type{Int16}) = UInt16
 Base.uinttype(::Type{Int32}) = UInt32
 Base.uinttype(::Type{Int64}) = UInt64
 
-# uints for other types are identified by they byte size
+# uints for other types are identified by their byte size
 Base.uinttype(::Type{T}) where T = Base.uinttype(sizeof(T)*8)
 
-function Base.uinttype(n::Integer)
-    n == 8 && return UInt8
-    n == 16 && return UInt16
-    n == 32 && return UInt32
-    n == 64 && return UInt64
+function Base.uinttype(nbits::Integer)
+    nbits == 8 && return UInt8
+    nbits == 16 && return UInt16
+    nbits == 32 && return UInt32
+    nbits == 64 && return UInt64
     throw(error("Only n=8,16,32,64 bits supported."))
 end

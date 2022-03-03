@@ -97,7 +97,7 @@ function redundancy(A::AbstractArray{T},
     for i in eachindex(M)           # loop over bit positions
         HAB = HA[i]+HB[i]           # sum of entropies of A,B
         if HAB > 0                  # entropy = 0 means A,B are fully redundant
-            R[i] = 2*M[i]/HAB
+            R[i] = 2*M[i]/HAB       # symmetric redundancy
         end
     end
 

@@ -1,17 +1,13 @@
-import StatsBase: entropy
-
 """Count the occurences of the 1-bit in bit position i across all elements of A."""
-function bitcount(A::AbstractArray{T},i::Int) where {T<:Union{Integer,AbstractFloat}}
+function bitcount(A::AbstractArray{T},i::Int) where {T<:Unsigned}
     nbits = sizeof(T)*8         # number of bits in T
     @boundscheck i <= nbits || throw(error("Can't count bit $b for $N-bit type $T."))
     
-    UIntT = Base.uinttype(T)    # UInt corresponding to T
     c = 0                       # counter
     shift = nbits-i             # shift bit i in least significant position
-    mask = one(UIntT) << shift  # mask to isolate the bit in position i
+    mask = one(T) << shift      # mask to isolate the bit in position i
     @inbounds for a in A                  
-        ui = reinterpret(UIntT,a)   # mask everything but i and shift
-        c += (ui & mask) >> shift   # to have either 0x0 or 0x1 to increase counter
+        c += (a & mask) >> shift   # to have either 0x0 or 0x1 to increase counter
     end
     return c
 end
@@ -20,8 +16,13 @@ end
 function bitcount(A::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
     nbits = 8*sizeof(T)             # determine the size [bit] of elements in A
     C = zeros(Int,nbits)
-    @inbounds for b in 1:nbits      # loop over bit positions and for each
-        C[b] = bitcount(A,b)        # count through all elements in A
+    Auint = reinterpret(Base.uinttype(T),A)
+
+    # loop over bit positions and for each count through all elements in A
+    # outer loop: bit position, inner loop: all elements in a
+    # note this is faster than swapping inner & outer loop
+    @inbounds for i in 1:nbits      
+        C[i] = bitcount(Auint,i)
     end
     return C
 end
@@ -72,7 +73,9 @@ function bitpair_count( A::AbstractArray{T},
     Auint = reinterpret(Base.uinttype(T),A)
     Buint = reinterpret(Base.uinttype(T),B)
 
-    for (a,b) in zip(Auint,Buint)   # run through all elements in A,B pairwise
+    # loop over all elements in A,B pairwise, inner loop (within bitpair_count!): bit positions
+    # note this is faster than swapping inner & outer loop
+    for (a,b) in zip(Auint,Buint)
         bitpair_count!(C,a,b)       # count the bits and update counter array C
     end
 
