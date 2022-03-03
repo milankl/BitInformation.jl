@@ -123,7 +123,7 @@ end
 
         R = redundancy(A,B)
         for r in R
-            @test r ≈ p rtol=1e-1
+            @test r ≈ p rtol=2e-1
         end
     end
 
@@ -141,7 +141,7 @@ end
 
         R = redundancy(A,B)
         for r in R
-            @test r ≈ p rtol=1e-1
+            @test r ≈ p rtol=2e-1
         end
     end
 end
