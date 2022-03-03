@@ -1,34 +1,36 @@
 # Bitwise information content analysis
 
-## Bitpattern entropy
+## Bit pattern entropy
 
-An $n$-bit number format has  bitpatterns available to encode a real number. 
-For most data arrays, not all bitpatterns are used at uniform probability. 
-The bitpattern entropy is the 
+An $n$-bit number format has $2^n$ bit patterns available to encode a real number. 
+For most data arrays, not all bit pattern occur at equal probability. 
+The bit pattern entropy is the 
 [Shannon information entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory))
-$H$, in units of bits, calculated from the probability $p_i$ of each bitpattern 
+$H$, in units of bits, calculated from the probability $p_i$ of each bit pattern 
 
 ```math
 H = -\sum_{i=1}^{2^n}p_i \log_2(p_i)
 ```
 
-The bitpattern entropy is $H \leq n$ and maximised to $n$ bits for a uniform distribution.
-The free entropy is the difference $n-H$.
+The bitpattern entropy is $H \leq n$ and maximised to $n$ bits for a uniform distribution,
+i.e. all bit pattern occur equally frequent. The free entropy $H_f$ is the difference $n-H$.
 
-In BitInformation.jl, the bitpattern entropy is calculated via `bitpattern_entropy(::Array)`
+In BitInformation.jl, the bitpattern entropy is calculated via `bitpattern_entropy(::AbstractArray)`
 ```julia
-julia> A = rand(Float32,100000000);
+julia> A = rand(Float32,100000000) .+ 1;
 
 julia> bitpattern_entropy(A)
 22.938590744784577
 ```
 Here, the entropy is about 23 bit, meaning that `9` bits are effectively unused.
-This is because `rand` samples in `[1,2)`, so that the sign and exponent bits are
-always `0 01111111` followed by some random significant bits.
+This is because all elements of A are in `[1,2)`, so that the sign and exponent bits are
+always `0 01111111` followed by 23 random significant bits, each contributing about 1 bit.
 
-The function `bitpattern_entropy` is based on sorting the array `A`. While this
-avoids the allocation of a bitpattern histogram (which would make the function
-unsuitable for anything larger than 32 bits) it has to allocate a sorted version of `A`.
+!!! note "Implementation details"
+    The function `bitpattern_entropy` is based on sorting the array `A`. While this
+    avoids the allocation of a bitpattern histogram (which would make the function
+    unsuitable for anything larger than 32 bits) it has to allocate a sorted version of `A`.
+    If you don't mind the sorting in-place use `bitpattern_entropy!(::AbstractArray)`.
 
 ## Bit count entropy
 
@@ -39,11 +41,12 @@ i.e. a sequence of bits of length $l$, the form
 H(b) = -p_0 \log_2(p_0) - p_1\log_2(p_1)
 ```
 
-with $p_0,p_1$ being the probability of a bit $b_k$ in $b$ being 0 or 1. The entropy is maximised to 1 bit for equal probabilities $p_0 = p_1 = \tfrac{1}{2}$ in $b$. The function `bitcount(A::Array)`
+with $p_0,p_1$ being the probability of a bit $b_k$ in $b$ being 0 or 1. The entropy is maximised to
+1 bit for equal probabilities $p_0 = p_1 = \tfrac{1}{2}$ in $b$. The function `bitcount(A::Array)`
 counts all occurences of the 1-bit in every bit-position in every element of `A`. E.g.
 
 ```julia
-julia> bitstring.(A)        # 5-elemenet Vector{UInt8}
+julia> bitstring.(A)        # 5-element Vector{UInt8}
 5-element Array{String,1}:
  "10001111"
  "00010111"
@@ -63,8 +66,8 @@ julia> bitcount(A)
  3
 ```
 
-The first bit of elements (here: `UInt8`) in `A` are 4 times `1` and so 1 times
-`0`, etc. In contrast, elements drawn from a uniform distribution U(0,1)
+The first bit of elements (here: `UInt8`) in `A` is 4x `1` and hence 1x `0`.
+In contrast, elements drawn from a uniform distribution U(0,1)
 
 ```julia
 julia> A = rand(Float32,100000);
@@ -89,7 +92,7 @@ Once the bits in an array are counted, the respective probabilities $p_0,p_1$ ca
 and the entropy derived. The function `bitcount_entropy(A::Array)` does that
 ```julia
 julia> A = rand(UInt8,100000);          # entirely random bits
-julia> Elefridge.bitcountentropy(A)
+julia> bitcount_entropy(A)
 8-element Array{Float64,1}:             # entropy is for every bit position ≈ 1
  0.9999998727542938
  0.9999952725717266
@@ -104,14 +107,14 @@ This converges to 1 for larger arrays.
 
 ## Bit pair count
 
-The `bitpaircount(A::Array)` function returns a `4xn` (with `n`
-being the number of bits in every element of `A`) array, the counts the occurrences
-of `00`,`01`,`10`,`11` for all bit-positions in `a in A` across all elements `a` in `A`.
-For a length `N` of array `A` (one or multi-dimensional) the maximum occurrence
-is `N-1`. E.g.
+The `bitpair_count(A::AbstractArray,B::AbstractArray)` function returns a `nx2x2` array,
+with `n` being the number of bits elements of `A,B`. The array contains counts the
+occurrences of bit pairs between A,B, i.e. `00`,`01`,`10`,`11` for all bit positions.
+E.g.
 
 ```julia
-julia> A = rand(UInt8,5);
+julia> A = rand(UInt8,5)
+julia> B = rand(UInt8,5)
 julia> bitstring.(A)
 5-element Array{String,1}:
  "01000010"
@@ -120,82 +123,15 @@ julia> bitstring.(A)
  "01111111"
  "00010100"
 
-julia> bitpaircount(A)
-4×8 Array{Int64,2}:
- 2  0  0  0  2  0  0  2    # occurences of `00` in the n-bits of UInt8
- 1  0  2  1  1  1  0  1    # occurences of `01`
- 1  1  2  0  1  0  1  1    # occurences of `10`
- 0  3  0  3  0  3  3  0    # occurences of `11`
+julia> C = bitpair_count(A,B)
+julia> C[1,:,:]         # bitpairs of A,B in 1st bit position
+2×2 Matrix{Int64}:
+ 2  1
+ 1  1
 ```
 
-The first bit of elements in `A` is as a sequence `01000`. Consequently,
-`00` occurs 2x, `01` and `10` once each, and `11` does not occur.
-Multi-dimensional arrays are unravelled into a vector, following Julia's
-memory layout (column-major).
-
-## Bit conditional entropy
-
-Based on `bitpaircount` we can calculate the conditional
-entropy of the state of one bit given the state of the previous bit (previous
-meaning in the same bit position but in the previous element in the array `A`).
-In the previous example we obtain
-```julia
-julia> bit_condprobability(A)
-4×8 Array{Float64,2}:
- 0.666667  NaN     0.0  0.0  0.666667  0.0  NaN     0.666667
- 0.333333  NaN     1.0  1.0  0.333333  1.0  NaN     0.333333
- 1.0         0.25  1.0  0.0  1.0       0.0    0.25  1.0
- 0.0         0.75  0.0  1.0  0.0       1.0    0.75  0.0
-```
-Given the previous bit being `0` there is a 2/3 chance that th next bit is a `0`
-too, and a 1/3 change that the next bit is a `1`, i.e.
-$p_{00} = p(\text{next}=0|\text{previous}=0) = 2/3$, and
-$p_{10} = p(1|0) = \tfrac{1}{3}$, such that $p(0|0)+p(1|0)=1$ always (which are
-the marginal probabilities from below), if not `NaN`,
-and similarly for $p(0|1)$ and $p(1|1)$.
-
-The conditional entropies $H_0,H_1$ are conditioned on the state of the
-previous bit $b_{j-1}$ being 0 or 1
-
-```math
-\begin{aligned}
-H_0 &= -p_{00}\log_2(p_{00}) - p_{01}\log_2(p_[01]) \\
-H_1 &= -p_{10}\log_2(p_{10}) - p_{11}\log_2(p_[11]) \\
-\end{aligned}
-```
-
-The conditional entropy is maximised to 1 bit for bitstreams where the probability
-of a bit being 0 or 1 does not depend on the state of the previous bit, which is
-here defined as _false information_.
-
-```julia
-julia> r = rand(Float32,100_000)
-julia> H₀,H₁ = bit_condentropy(r)
-julia> H₀
-32-element Vector{Float64}:
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0
- 0.07559467763419292
- 0.5214998930042997
- 0.9684130809383832
- ⋮
- 0.9997866754890564
- 0.999747731180627
- 0.999438123786493
- 0.9968145441905049
- 0.9878425610244357
- 0.9528602299665989
- 0.8124289058679582
- 0.0
-```
-
-Sign and the first exponent bits have 0 conditional entropy, which increases to 1 bit for the fully
-random significant bits. The last significant bits have lower conditional entropy due to shortcomings
-in the pseudo random generator in `rand`, see a discussion
-[here](https://sunoru.github.io/RandomNumbers.jl/dev/man/basics/#Conversion-to-Float).
+Here, among the 5 element pairs in `A,B` there are 2 which both have a `0` in the first bit
+position. One element pair is `01`, one `10` and one `11`.
 
 ## Mutual information
 
@@ -217,12 +153,12 @@ $r,s$ is then
 M(r,s) = \sum_{r=0}^1 \sum_{s=0}^1 p_{rs} \log_2 \left( \frac{p_{rs}}{p_{r=r}p_{s=s}}\right)
 ```
 
-The function `bitinformation(::Array{T,N},::Array{T,N})` calculates $M$ as
+The function `mutual_information(::AbstractArray,::AbstractArray)` calculates $M$ as
 
 ```julia
 julia> r = rand(Float32,100_000)    # [0,1) random float32s
 julia> s = shave(r,15)              # remove information in sbit 16-23 by setting to 0
-julia> bitinformation(r,s)
+julia> mutual_information(r,s)
 32-element Vector{Float64}:
  0.0
  ⋮
@@ -239,6 +175,9 @@ julia> bitinformation(r,s)
  0.0
  0.0                                # sbit 23
 ```
+The mutual information approaches 1 bit for unchaged bits between `r,s`, but bits that have
+been shaved off do not contain any information, hence the mutual information also drops
+as there is no entropy to start with.
 
 ## Real bitwise information
 
@@ -253,14 +192,14 @@ bits also as
 I = H - q_0H_0 - q_1H_1
 ```
 
-which is the real information content $I$. This definition is similar to Jeffress et al. (2017) [1],
+which is the real information content $I$. This definition is similar to Jeffress et al. (2017) [^1],
 but avoids an additional assumption of an uncertainty measure. This defines the real information
-as the entropy minus the false information.  For bitstreams with either $p_0 = 1$ or $p_1 = 1$,
+as the entropy minus the false information. For bitstreams with either $p_0 = 1$ or $p_1 = 1$,
 i.e. all bits are either 0 or 1, the entropies are zero $H = H_0 = H_1 = 0$ and we may refer to
 the bits in the bitstream as being unused. In the case where $H > p_0H_0 + p_1H_1$, the preceding bit
 is a predictor for the succeeding bit which means that the bitstream contains real information ($I > 0$).
 
-The computation of $I$ is implemented in `bitinformation(::Array)` 
+The computation of $I$ is implemented in `bitinformation(::AbstractArray)` 
 
 ```julia
 julia> A = rand(UInt8,1000000)  # fully random bits
@@ -314,14 +253,11 @@ in the last significant bit (flips randomly). The information is maximised to
 of such a bit one can expect the next (or previous) bit to be the same due to
 the correlation.
 
-[1] Jeffress, S., Düben, P. & Palmer, T. _Bitwise efficiency in chaotic models_.
-*Proc. R. Soc. Math. Phys. Eng. Sci.* 473, 20170144 (2017).
-
 ## Multi-dimensional real information
 
 The real information content $I_m$  for an $m$-dimensional array $A$ is the sum of the
 real information along the  dimensions. Let $b_j$ be a bitstream obtained by unravelling
-a given bitposition in  along its $j$-th dimension. Although the unconditional entropy $H$
+a given bitposition in along its $j$-th dimension. Although the unconditional entropy $H$
 is unchanged along the $m$-dimensions, the conditional entropies $H_0,H_1$ change as the
 preceding and succeeding bit is found in another dimension, e.g. $b_2$ is obtained by
 re-ordering $b_1$. Normalization by $\tfrac{1}{m}$ is applied to $I_m$ such that the
@@ -331,49 +267,34 @@ maximum information is 1 bit in $I_m^*$
 I_m^* = H - \frac{p_0}{m}\sum_{j=1}^mH_0(b_j) - \frac{p_1}{m}\sum_{j=1}^mH_1(b_j)
 ```
 
-This is implemented in BitInformation.jl as `bitinformation(::Array{T,N},:all_dimensions)`, e.g.
+This is implemented in BitInformation.jl as `bitinformation(::AbstractArray,dim::int)`, e.g.
 
 ```julia
 julia> A = rand(Float32,100,200,300)    # a 3D array
-julia> sort!(A,dims=1)                  # sort to create some auto-corelation
-julia> bitinformation(A,:all_dimensions)
+julia> sort!(A,dims=2)                  # sort to create some auto-corelation
+julia> bitinformation(A,dim=2)          # information along 2nd dimension
 32-element Vector{Float64}:
+ 0.9284529526801016
+ 0.12117292341467487
+ 0.12117292341467487
+ 0.12117292341467487
+ 0.12097216822084497
+ 0.11085252207817117
+ 0.31618374026691876
+ 0.5342647349810241
+ 0.44490628938885407
+ 0.2420859244356707
+ 0.08943278228929732
+ 0.01870979798293037
+ 0.00221913365831955
  0.0
  0.0
- 0.0
- 0.0
- 6.447635701154324e-7
- 0.014292670110681693
- 0.31991625275425073
- 0.5440816091704278
- 0.36657938793446365
- 0.2533186226597825
- 0.13051374121057438
  ⋮
  0.0
  0.0
- 8.687738656254496e-7
- 6.251449893598012e-6
- 5.0038146715651134e-5
- 0.0003054976017733783
- 0.0015377166906772044
- 0.006581160530812665
- 0.022911924843179426
- 0.06155167545633838
- 0.0
 ```
-
-which is equivalent to
-
-```julia
-julia> bitinformation(A,:all_dimensions) ≈ 1/3*(bitinformation(A,dims=1)+
-                                               bitinformation(A,dims=2)+
-                                               bitinformation(A,dims=3))
-true
-```
-
-The keyword `dims` will permute the dimensions in `A` to calcualte the information
-in the specified dimensions. By default `dims=1`, which uses the ordering of the bits
+The keyword `dim` will permute the dimensions in `A` to calcualte the information
+in the specified dimensions. By default `dim=1`, which uses the ordering of the bits
 as they are layed out in memory.
 
 ## Redundancy
@@ -386,8 +307,8 @@ R(r,s) = \frac{2M(r,s)}{H(r) + H(s)}
 `R` is the redundancy of information of $r$ in $s$ (and vice versa). $R = 1$ for identical
 bitstreams $r = s$, but $R = 0$ for statistically independent bitstreams.
 
-BitInformation.jl implements the redundancy calculation via `redundancy(::Array{T,N},::Array{T,N})`
-where the inputs have to be of same size and element type `T`. For example, shaving off some of
+BitInformation.jl implements the redundancy calculation via `redundancy(::AbstractArray,::AbstractArray)`
+where the inputs have to be of same size and element type. For example, shaving off some of
 the last significant bits will set the redundancy for those to 0, but redundancy is 1 for all
 bitstreams which are identical
 
@@ -396,11 +317,11 @@ julia> r = rand(Float32,100_000)    # random data
 julia> s = shave(r,7)               # keep only sign, exp and sbits 1-7
 julia> redundancy(r,s)
 32-element Vector{Float64}:
- 0.0                                # 0 redundancy as entropy = 0
- 0.0
- 0.0
- 0.0
- 0.9999999999993566                 # redundancy 1 as bitstreams are identical
+ 1.0                                # redundancy 1 as bitstreams are identical
+ 1.0
+ 1.0
+ 1.0
+ 0.9999999999993566                 # rounding errors can yield ≈1    
  0.9999999999999962
  1.0
  1.0000000000000002
@@ -418,7 +339,7 @@ julia> redundancy(r,s)
 ## Preserved information
 
 The preserved information $P(r,s)$ between two bitstreams $r,s$ where $s$ approximates $r$
-is the redundancy-weighted real information $I$
+is the information-weighted redundancy $I$
 
 ```math
 P(r,s) = R(r,s)I(r)
@@ -487,3 +408,8 @@ set the real information $I = 0$. The calculation of $H_f$ is implemented as
 julia> BitInformation.binom_free_entropy(10_000_000,0.99)
 4.786066739592698e-7
 ```
+
+## References
+
+[^1]: Jeffress, S., Düben, P. & Palmer, T. _Bitwise efficiency in chaotic models_. *Proc. R. Soc. Math. Phys. Eng. Sci.* 473, 20170144 (2017).
+

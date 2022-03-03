@@ -2,7 +2,7 @@ using Documenter, BitInformation
 
 makedocs(
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true"),
+    prettyurls = get(ENV, "CI", nothing) == "true"),
     sitename="BitInformation.jl",
     authors="M Klöwer",
     modules=[BitInformation],

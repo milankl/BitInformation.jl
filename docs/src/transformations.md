@@ -6,14 +6,18 @@ for lossless compression algorithms.
 
 !!! warning "Interpretation of transformed floats"
     BitInformation.jl will not store the information that a transformation was applied to a value. This means
-    that Julia will not know about this and interpret a value incorrectly. You will have to explicitly execute
-    the backtransform 
+    that Julia will not know about this and interpret/print a value incorrectly. You will have to explicitly execute
+    the backtransform (and know which one!) to undo the transformation
     ```julia
     julia> A = [0f0,1f0]         # 0 and 1
     julia> At = bittranspose(A)  # are transposed into 1f-35 and 0
     2-element Vector{Float32}:
-    1.0026967f-35
-    0.0
+     1.0026967f-35
+     0.0
+    julia> bitbacktranspose(At) # reverse transpose
+    2-element Vector{Float32}:
+     0.0
+     1.0
     ```
 
 ## Bit transpose (aka shuffle)
@@ -125,11 +129,10 @@ julia> bitstring.(Ax)
 
 ## Signed exponent
 
-Floating-point numbers have a biased exponent. There are 
+IEEE Floating-point numbers have a biased exponent. There are 
 [other ways to encode the exponent](https://en.wikipedia.org/wiki/Signed_number_representations#Comparison_table)
 and BitInformation.jl implements `signed_exponent` which transforms the exponent bits of a float into a 
 representation where also the exponent has a sign bit (which is the first exponent bit)
-
 ```julia
 julia> a = [0.5f0,1.5f0]               # smaller than 1 (exp sign -1), larger than 1 (exp sign +1)
 julia> bitstring.(a,:split)
@@ -142,4 +145,22 @@ julia> bitstring.(signed_exponent(a),:split)
  "0 10000001 00000000000000000000000"  # signed exponent: sign=1, magnitude=1, i.e. 2^-1
  "0 00000000 10000000000000000000000"  # signed exponent: sign=0, magnitude=0, i.e. 2^0
 ```
+The transformation `signed_exponent` can be undone with `biased_exponent`
+```julia
+julia> A = 0.5f0,1.5f0]
+2-element Vector{Float32}:
+ 0.5
+ 1.5
 
+julia> signed_exponent(A)
+2-element Vector{Float32}:
+ 4.0
+ 5.877472f-39
+
+julia> biased_exponent(signed_exponent(A))
+2-element Vector{Float32}:
+ 0.5
+ 1.5
+```
+Both `signed_exponent` and `biased_exponent` also exist as in-place functions
+`signed_exponent!` and `biased_exponent!`.
