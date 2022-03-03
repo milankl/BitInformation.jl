@@ -1,5 +1,3 @@
-using Test
-
 @testset "Zero shaves to zero" begin
     for T in [Float16,Float32,Float64]
         for k in -5:50
@@ -57,9 +55,9 @@ end
     end
 end
 
-@testset "Approx equal for keepbits=5,10,25" begin
+@testset "Approx equal for keepbits=8,15,35" begin
     for (T,k) in zip([Float16,Float32,Float64],
-                        [6,11,26])
+                        [8,15,35])
         A = rand(T,200,300)
         Ar = shave(A,k)
         @test A ≈ Ar

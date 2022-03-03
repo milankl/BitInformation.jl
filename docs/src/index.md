@@ -2,7 +2,8 @@
 
 ## Overview
 
-[BitInformation.jl](https://github.com/milankl/BitInformation.jl) is a library for the analysis of bitwise information in n-dimensional Julia arrays. 
+[BitInformation.jl](https://github.com/milankl/BitInformation.jl) is a library for the analysis of bitwise information and
+bitwise manipulation in n-dimensional Julia arrays. 
 
 ## Installation
 
@@ -14,8 +15,9 @@ where `]` opens the package manager. The latest version is automatically install
 
 ## Developers
 
-BitInformation.jl is currently developed by [Milan Klöwer](https://github.com/milankl), any contributions are always welcome.
+BitInformation.jl is currently developed by [Milan Klöwer](https://github.com/milankl). Any contributions are always welcome.
 
 ## Funding
 
-This project is funded by the [Copernicus Programme](https://www.copernicus.eu/en/copernicus-services/atmosphere) through the [ECMWF summer of weather code 2020 and 2021](https://esowc.ecmwf.int/).
+This project is funded by the [Copernicus Programme](https://www.copernicus.eu/en/copernicus-services/atmosphere)
+through the [ECMWF summer of weather code 2020 and 2021](https://esowc.ecmwf.int/).

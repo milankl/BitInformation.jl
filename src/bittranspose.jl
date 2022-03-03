@@ -2,9 +2,9 @@ const DEFAULT_BLOCKSIZE=2^14
 
 """Transpose the bits (aka bit shuffle) of an array to place sign bits, etc. next to each
 other in memory. Back transpose via bitbacktranspose(). Inplace version that requires a
-preallocated output array At, which must contain 0s everywhere."""
-function bittranspose!( ::Type{UIntT},				# UInt equiv to T
-						At::AbstractArray{T},		# transposed array
+preallocated output array At, which must contain 0 bits everywhere."""
+function bittranspose!( ::Type{UIntT},				# UInt corresponding to T
+						At::AbstractArray{T},		# transposed array to be filled
 						A::AbstractArray{T};		# original array
 						blocksize::Int=DEFAULT_BLOCKSIZE) where {UIntT<:Unsigned,T}
 
@@ -17,10 +17,9 @@ function bittranspose!( ::Type{UIntT},				# UInt equiv to T
     # At .= zero(T)                 	    # make sure output array is zero
     nblocks = (N-1) ÷ blocksize + 1			# number of blocks
 
-    for nb in 1:nblocks
+    @inbounds for nb in 1:nblocks
 
         lastindex = min(nb*blocksize,N)
-
         Ablock = view(A,(nb-1)*blocksize+1:lastindex)
         Atblock = view(At,(nb-1)*blocksize+1:lastindex)
 
@@ -44,8 +43,8 @@ function bittranspose!( ::Type{UIntT},				# UInt equiv to T
 
                 # the first nbits elements go into same b in B, then next b
 				idx = (i ÷ nbits) + 1
-				@inbounds atui = reinterpret(UIntT,Atblock[idx])
-                @inbounds Atblock[idx] = reinterpret(T,atui | bit)
+				atui = reinterpret(UIntT,Atblock[idx])
+                Atblock[idx] = reinterpret(T,atui | bit)
                 i += 1
             end
         end
@@ -57,8 +56,8 @@ end
 """Transpose the bits (aka bit shuffle) of an array to place sign bits, etc. next to each
 other in memory. Back transpose via bitbacktranspose()."""
 function bittranspose(A::AbstractArray{T};kwargs...) where T
-	UIntT = whichUInt(T)
-	At = fill(reinterpret(T,zero(UIntT)),size(A))
+	UIntT = Base.uinttype(T)                        # get corresponding UInt to T
+	At = fill(reinterpret(T,zero(UIntT)),size(A))   # preallocate with zeros (essential)
 	bittranspose!(UIntT,At,A;kwargs...)
 	return At
 end
@@ -78,7 +77,7 @@ function bitbacktranspose!(	::Type{UIntT},				# UInt equiv to T
     # A .= zero(T)                 	    # make sure output array is zero
     nblocks = (N-1) ÷ blocksize + 1		# number of blocks
 
-    for nb in 1:nblocks
+    @inbounds for nb in 1:nblocks
 
         lastindex = min(nb*blocksize,N)
 
@@ -104,8 +103,8 @@ function bitbacktranspose!(	::Type{UIntT},				# UInt equiv to T
 
                 # the first nbits elements go into same a in A, then next a
 				idx = (i % nelements) + 1
-				@inbounds aui = reinterpret(UIntT,Ablock[idx])
-				@inbounds Ablock[idx] = reinterpret(T,aui | bit)
+				aui = reinterpret(UIntT,Ablock[idx])
+				Ablock[idx] = reinterpret(T,aui | bit)
                 i += 1
             end
         end
@@ -116,8 +115,8 @@ end
 
 """Backtranspose the bits of array A that were previously transposed with bittranspse()."""
 function bitbacktranspose(At::AbstractArray{T};kwargs...) where T
-	UIntT = whichUInt(T)
-	A = fill(reinterpret(T,zero(UIntT)),size(At))
+	UIntT = Base.uinttype(T)                        # get corresponding UInt to T
+	A = fill(reinterpret(T,zero(UIntT)),size(At))   # preallocate with zeros (essential)
 	bitbacktranspose!(UIntT,A,At;kwargs...)
 	return A
 end

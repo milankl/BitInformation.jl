@@ -1,5 +1,3 @@
-using Test
-
 @testset "iseven isodd" begin
     # check sign bits
     @test iseven(1f0,-8)
@@ -114,17 +112,6 @@ end
         x = reinterpret(Float32,x)
         @test 1f0 == round(x,k)
     end
-
-    # for T in [Float16,Float32,Float64]
-    #     for k in 1:20
-    #         x = randn(T)
-    #         xr1 = round(x,k+1)
-    #         xr = round(xr1,k)
-
-    #         if iseven(xr,k)
-
-    #     end
-    # end
 end
 
 @testset "Round to nearest?" begin

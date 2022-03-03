@@ -6,6 +6,18 @@
  BitInformation.jl implements them efficiently with bitwise operations, in-place or by creating a
  copy of the original array. 
 
+!!! tip "Bitstring split into sign, exponent and mantissa bits"
+    BitInformation.jl extends `Base.bitstring` with a split option to better visualise sign, exponent
+    and mantissa bits for floats.
+    ```julia
+    julia> bitstring(1.1f0)
+    "00111111100011001100110011001101"
+    
+    julia> bitstring(1.1f0,:split)
+    "0 01111111 00011001100110011001101"
+    ```
+
+
 ## Round to nearest
 
 With binary round to nearest a full-precision number is replaced by the nearest representable float

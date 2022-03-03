@@ -132,5 +132,5 @@ for func in (:shave,:halfshave,:set_one,:groom)
     end
 end
 
-# """Number of significant bits `nsb` given the number of significant digits `nsd`."""
-# nsb(nsd::Integer) = Integer(ceil(log(10)/log(2)*nsd))
+"""Number of significant bits `nsb` given the number of significant digits `nsd`."""
+nsb(nsd::Integer) = Integer(ceil(log(10)/log(2)*nsd))

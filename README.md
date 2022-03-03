@@ -3,16 +3,15 @@
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://milankl.github.io/BitInformation.jl/dev)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4774191.svg)](https://doi.org/10.5281/zenodo.4774191)
 
-BitInformation.jl is a package for the analysis of bitwise information in Julia Arrays.
-Based on counting the occurrences of bits in floats (Float16/32/64 or generally any bittype)
-across various dimensions of an array, this package provides functions to calculate quantities
-like the bitwise real information content, the mutual information, the redundancy or preserved
-information between arrays.
+BitInformation.jl is a package for bitwise information analysis and manipulation in Julia arrays.
+Based on counting the occurrences of bits in floats (or generally any bits type) across various dimensions,
+this package calculates quantities like the bitwise real information content, the mutual information, the
+redundancy or preserved information between arrays.
 
-BitInformation.jl also implements various rounding modes (round,shave,set_one, etc.)
-efficiently with bitwise operations. `round(x,i)` implements IEEE's round to nearest tie to even
-for any float retaining `i` mantissa bits. Furthermore, transormations like XOR-delta, bittranspose,
-or signed_exponent are implemented.
+For bitwise manipulation, BitInformation.jl also implements various rounding modes (IEEE round,shave,set_one, etc.)
+efficiently with bitwise operations for any number of bits. E.g. `round(x,i)` implements IEEE's round to nearest
+tie-to-even for any float retaining `i` mantissa bits. Furthermore, transormations like XOR-delta, bittranspose
+(aka bit shuffle), or signed/biased exponents are implemented.
 
 If you'd like to propose changes, or contribute in any form raise an issue, create a 
 [pull request](https://github.com/milankl/BitInformation.jl/pulls)
