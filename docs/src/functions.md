@@ -3,39 +3,39 @@
 ### Information
 
 ```@docs
-BitInformation.bitinformation(::Array)
-BitInformation.mutual_information(::Array,::Array)
-BitInformation.mutual_information(::Matrix)
-BitInformation.redundancy(::Array,::Array)
+BitInformation.bitinformation
+BitInformation.mutual_information
+BitInformation.mutual_information
+BitInformation.redundancy
 ```
 
 ### Bit counting and entropy
 
 ```@docs
-BitInformation.bitpattern_entropy(::Array)
-BitInformation.bitcount(::Array)
-BitInformation.bitcount_entropy(::Array)
-BitInformation.bitpair_count(::Array,::Array)
+BitInformation.bitpattern_entropy
+BitInformation.bitcount
+BitInformation.bitcount_entropy
+BitInformation.bitpair_count
 ```
 
 ### Significance of information
 
 ```@docs
-BitInformation.binom_confidence(::Int,::Real)
-BitInformation.binom_free_entropy(::Int,::Real)
+BitInformation.binom_confidence
+BitInformation.binom_free_entropy
 ```
 
 ### Transformations
 
 ```@docs
-BitInformation.bittranspose(::Array)
-BitInformation.bitbacktranspose(::Array)
-BitInformation.xor_delta(::Array)
-BitInformation.unxor_delta(::Array)
-BitInformation.signed_exponent(::Array)
-BitInformation.signed_exponent!(::Array)
-BitInformation.biased_exponent(::Array)
-BitInformation.biased_exponent!(::Array)
+BitInformation.bittranspose
+BitInformation.bitbacktranspose
+BitInformation.xor_delta
+BitInformation.unxor_delta
+BitInformation.signed_exponent
+BitInformation.signed_exponent!
+BitInformation.biased_exponent
+BitInformation.biased_exponent!
 ```
 
 ### Rounding
@@ -65,6 +65,6 @@ BitInformation.nsb
 
 ```@docs
 Base.bitstring(::Base.IEEEFloat,::Symbol)
-Base.BitArray(::Array)
+Base.BitArray(::Matrix)
 ```
 
