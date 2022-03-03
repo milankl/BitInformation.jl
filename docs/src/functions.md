@@ -5,7 +5,6 @@
 ```@docs
 BitInformation.bitinformation
 BitInformation.mutual_information
-BitInformation.mutual_information
 BitInformation.redundancy
 ```
 
@@ -13,6 +12,7 @@ BitInformation.redundancy
 
 ```@docs
 BitInformation.bitpattern_entropy
+BitInformation.bitpattern_entropy!
 BitInformation.bitcount
 BitInformation.bitcount_entropy
 BitInformation.bitpair_count
@@ -31,7 +31,9 @@ BitInformation.binom_free_entropy
 BitInformation.bittranspose
 BitInformation.bitbacktranspose
 BitInformation.xor_delta
+BitInformation.xor_delta!
 BitInformation.unxor_delta
+BitInformation.unxor_delta!
 BitInformation.signed_exponent
 BitInformation.signed_exponent!
 BitInformation.biased_exponent
@@ -55,8 +57,11 @@ Base.isodd(::Base.IEEEFloat,::Integer)
 
 ```@docs
 BitInformation.shave
+BitInformation.shave!
 BitInformation.halfshave
+BitInformation.halfshave!
 BitInformation.set_one
+BitInformation.set_one!
 BitInformation.groom!
 BitInformation.nsb
 ```
