@@ -1,5 +1,3 @@
-using Test
-
 @testset "Zero shaves to zero" begin
     for T in [Float16,Float32,Float64]
         for k in -5:50
