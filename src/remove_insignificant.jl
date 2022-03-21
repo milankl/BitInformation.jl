@@ -26,11 +26,11 @@ function binom_free_entropy(n::Int,c::Real,base::Real=2)
     return 1 - entropy([p,1-p],base)
 end
 
-```
+"""
     set_zero_insignificant!(H::Vector,nelements::Int,confidence::Real)
 
 Remove binary information in the vector `H` of entropies that is insignificantly
-different from a random 50/50 by setting it to zero.```
+different from a random 50/50 by setting it to zero."""
 function set_zero_insignificant!(H::Vector,nelements::Int,confidence::Real)
     Hfree = binom_free_entropy(nelements,confidence)    # free entropy of random 50/50 at trial size
                                                         # get chance p for 1 (or 0) from binom distr
