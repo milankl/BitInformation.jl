@@ -46,11 +46,7 @@ function mutual_information(A::AbstractArray{T},
 
     # remove information that is insignificantly different from a random 50/50
     if set_zero_insignificant
-        Hf = binom_free_entropy(nelements,confidence)   # free entropy of random 50/50 at trial size
-                                                        # get chance p for 1 (or 0) from binom distr
-        @inbounds for i in eachindex(M)
-            M[i] = M[i] <= Hf ? 0 : M[i]                # set zero what's insignificant
-        end                          
+        set_zero_insignificant!(M,nelements,confidence)                        
     end
 
     return M
@@ -63,14 +59,7 @@ function bitinformation(A::AbstractArray{T};
                         kwargs...) where {T<:Union{Integer,AbstractFloat}}
 
     # Permute A to take adjacent entry in dimension dim
-    if dim > 1
-        permu = collect(1:ndims(A))             # permutation
-        perm0 = vcat(permu[2:end],permu[1])     # used to permute permu
-        for _ in 1:dim-1                       # create permutation array
-            permute!(permu,perm0)
-        end
-        A = PermutedDimsArray(A,permu)          # permute A, such that desired dim is 1st dim    
-    end
+    A = permute_dim_forward(A,dim)
     
     # create a two views on A for pairs of adjacent entries
     n = size(A)[1]                  # n elements in dim

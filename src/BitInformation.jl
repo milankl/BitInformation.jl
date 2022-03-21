@@ -25,5 +25,5 @@ module BitInformation
     include("bit_count.jl")
     include("mutual_information.jl")
     include("bitpattern_entropy.jl")
-    include("binomial.jl")
+    include("remove_insignificant.jl")
 end
