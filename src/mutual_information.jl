@@ -71,6 +71,41 @@ function bitinformation(A::AbstractArray{T};
     return mutual_information(A1view,A2view;kwargs...)
 end
 
+"""Bitwise real information content of array `A` calculated from the bitwise mutual information
+in adjacent entries in A along dimension `dim`."""
+function bitinformation(A::AbstractArray{T},
+                        mask::BitArray;
+                        dim::Int=1,
+                        set_zero_insignificant::Bool=true,
+                        confidence::Real=0.99) where {T<:Union{Integer,AbstractFloat}}
+
+    @boundscheck size(A) == size(mask) || throw(BoundsError)
+    nbits = 8*sizeof(T)
+
+    # Permute A and mask to take adjacent entry in dimension dim
+    A = permute_dim_forward(A,dim)
+    mask = permute_dim_forward(mask,dim)
+
+    C = bitpair_count(A,mask)       # nbits x 2 x 2 array of bitpair counters
+    nelements = sum(C[1,:,:])       # depending on mask nelements changes so obtain via C
+    M = zeros(nbits)                # allocate mutual information array
+    P = zeros(2,2)                  # allocate joint probability mass function    
+
+    @inbounds for i in 1:nbits      # mutual information for every bit position 
+        for j in 1:2, k in 1:2      # joint prob mass from counter C
+            P[j,k] = C[i,j,k]/nelements
+        end
+        M[i] = mutual_information(P)
+    end
+
+    # remove information that is insignificantly different from a random 50/50
+    if set_zero_insignificant
+        set_zero_insignificant!(M,nelements,confidence)                        
+    end
+
+    return M
+end
+
 """Calculate the bitwise redundancy of two arrays A,B. Redundancy
 is a normalised measure of the mutual information 1 for always
 identical/opposite bits, 0 for no mutual information."""
