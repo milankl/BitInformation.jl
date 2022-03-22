@@ -171,3 +171,13 @@ end
         end
     end
 end
+
+@testset "Masked arrays" begin
+    for T in (Float16,Float32,Float64)
+        A = rand(T,30,40)
+        sort!(A,dims=1)
+        mask = BitArray(undef,30,40)
+        fill!(mask,false)
+        @test bitinformation(A[1:end-1,:]) == bitinformation(A,mask)
+    end
+end
