@@ -10,7 +10,7 @@
     A2 = BitInformation.permute_dim_forward(A2,5)
     @test A == A2
 
-    A3 = BitInformation.ermute_dim_forward(A,4)
+    A3 = BitInformation.permute_dim_forward(A,4)
     A3 = BitInformation.permute_dim_forward(A3,4)
     @test A == A3
 end
