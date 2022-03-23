@@ -46,11 +46,7 @@ function mutual_information(A::AbstractArray{T},
 
     # remove information that is insignificantly different from a random 50/50
     if set_zero_insignificant
-        Hf = binom_free_entropy(nelements,confidence)   # free entropy of random 50/50 at trial size
-                                                        # get chance p for 1 (or 0) from binom distr
-        @inbounds for i in eachindex(M)
-            M[i] = M[i] <= Hf ? 0 : M[i]                # set zero what's insignificant
-        end                          
+        set_zero_insignificant!(M,nelements,confidence)                        
     end
 
     return M
@@ -63,14 +59,7 @@ function bitinformation(A::AbstractArray{T};
                         kwargs...) where {T<:Union{Integer,AbstractFloat}}
 
     # Permute A to take adjacent entry in dimension dim
-    if dim > 1
-        permu = collect(1:ndims(A))             # permutation
-        perm0 = vcat(permu[2:end],permu[1])     # used to permute permu
-        for _ in 1:dim-1                       # create permutation array
-            permute!(permu,perm0)
-        end
-        A = PermutedDimsArray(A,permu)          # permute A, such that desired dim is 1st dim    
-    end
+    A = permute_dim_forward(A,dim)
     
     # create a two views on A for pairs of adjacent entries
     n = size(A)[1]                  # n elements in dim
@@ -80,6 +69,47 @@ function bitinformation(A::AbstractArray{T};
     A2view = selectdim(A,1,2:n)     # for same indices A2 is the adjacent entry to A1
 
     return mutual_information(A1view,A2view;kwargs...)
+end
+
+"""
+    M = bitinformation(A::AbstractArray{T}, mask::BitArray) where {T<:Union{Integer,AbstractFloat}}
+
+Bitwise real information content of array `A` calculated from the bitwise mutual information
+in adjacent entries in A along dimension `dim` (optional keyword). Array `A` is masked through
+trues in entries of the mask `mask`. Masked elements are ignored in the bitwise information calculation."""
+function bitinformation(A::AbstractArray{T},
+                        mask::BitArray;
+                        dim::Int=1,
+                        set_zero_insignificant::Bool=true,
+                        confidence::Real=0.99) where {T<:Union{Integer,AbstractFloat}}
+
+    @boundscheck size(A) == size(mask) || throw(BoundsError)
+    nbits = 8*sizeof(T)
+
+    # Permute A and mask to take adjacent entry in dimension dim
+    A = permute_dim_forward(A,dim)
+    mask = permute_dim_forward(mask,dim)
+
+    C = bitpair_count(A,mask)       # nbits x 2 x 2 array of bitpair counters
+    nelements = sum(C[1,:,:])       # depending on mask nelements changes so obtain via C
+    @assert nelements > 0 "Mask has $(sum(.~mask)) unmasked values, 0 entries are adjacent."
+    
+    M = zeros(nbits)                # allocate mutual information array
+    P = zeros(2,2)                  # allocate joint probability mass function    
+
+    @inbounds for i in 1:nbits      # mutual information for every bit position 
+        for j in 1:2, k in 1:2      # joint prob mass from counter C
+            P[j,k] = C[i,j,k]/nelements
+        end
+        M[i] = mutual_information(P)
+    end
+
+    # remove information that is insignificantly different from a random 50/50
+    if set_zero_insignificant
+        set_zero_insignificant!(M,nelements,confidence)                        
+    end
+
+    return M
 end
 
 """Calculate the bitwise redundancy of two arrays A,B. Redundancy

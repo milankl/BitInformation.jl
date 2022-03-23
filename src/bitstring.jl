@@ -1,5 +1,8 @@
-"""Bitstring function with a split-mode that splits the bitstring into
-sign, exponent and significant bits."""
+"""
+    s = bitstring(x::T,mode::Symbol) where {T<:AbstractFloat}
+
+Bitstring function for floats with a split-mode for `mode=:split` that splits
+the bitstring into sign, exponent and significant bits."""
 function Base.bitstring(x::T,mode::Symbol) where {T<:AbstractFloat}
     if mode == :split
         bstr = bitstring(x)

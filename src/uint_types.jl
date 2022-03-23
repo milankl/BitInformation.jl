@@ -12,6 +12,7 @@ Base.uinttype(::Type{Int64}) = UInt64
 # uints for other types are identified by their byte size
 Base.uinttype(::Type{T}) where T = Base.uinttype(sizeof(T)*8)
 
+# or return the UInt type based on the number of bits 
 function Base.uinttype(nbits::Integer)
     nbits == 8 && return UInt8
     nbits == 16 && return UInt16
