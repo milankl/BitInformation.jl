@@ -13,7 +13,7 @@ efficiently with bitwise operations for any number of bits. E.g. `round(x,i)` im
 tie-to-even for any float retaining `i` mantissa bits. Furthermore, transormations like XOR-delta, bittranspose
 (aka bit shuffle), or signed/biased exponents are implemented.
 
-If you'd like to propose changes, or contribute in any form raise an issue, create a 
+If you'd like to propose changes, or contribute in any form create a 
 [pull request](https://github.com/milankl/BitInformation.jl/pulls)
 or raise an [issue](https://github.com/milankl/BitInformation.jl/issues).
 Contributions are highly appreciated!
