@@ -88,6 +88,8 @@ function bitinformation(A::AbstractArray{T},
 
     C = bitpair_count(A,mask)       # nbits x 2 x 2 array of bitpair counters
     nelements = sum(C[1,:,:])       # depending on mask nelements changes so obtain via C
+    @assert nelements > 0 "Mask has $(sum(.~mask)) unmasked values, 0 entries are adjacent."
+    
     M = zeros(nbits)                # allocate mutual information array
     P = zeros(2,2)                  # allocate joint probability mass function    
 

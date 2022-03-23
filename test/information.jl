@@ -176,8 +176,28 @@ end
     for T in (Float16,Float32,Float64)
         A = rand(T,30,40)
         sort!(A,dims=1)
+
+        # nothing is masked
         mask = BitArray(undef,30,40)
         fill!(mask,false)
         @test bitinformation(A[1:end-1,:]) == bitinformation(A,mask)
+
+        # half of the array is masked
+        # use view to avoid masking only a deep copy through [] indexing
+        fill!(@view(mask[:,21:end]),true)   
+        @test bitinformation(A[1:end-1,1:20]) == bitinformation(A,mask)
+
+        # half of the array is masked
+        # use view to avoid masking only a deep copy through [] indexing
+        fill!(mask,false)
+        fill!(@view(mask[21:end,:]),true)
+        @test bitinformation(A[1:20,:]) == bitinformation(A,mask)
+
+        # mask every other value (should throw an error as no
+        # adjacent entries are left)
+        fill!(mask,false)
+        mask[1:2:end,2:2:end] .= true
+        mask[2:2:end,1:2:end] .= true
+        @test_throws AssertionError bitinformation(A,mask)
     end
 end
