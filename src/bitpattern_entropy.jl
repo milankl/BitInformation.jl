@@ -1,11 +1,23 @@
-"""Calculate the bitpattern entropy for an array A by reinterpreting the elements
-as UInts and sorting them to avoid creating a histogram."""
+"""
+    H = bitpattern_entropy(A::AbstractArray,base::Real=2)
+
+Calculates the bit pattern entropy `H` for an array `A` by reinterpreting the elements
+as UInts and sorting them to avoid creating a histogram. The bit pattern entropy is the
+entropy from occurences of every possible bitpattern in `T` in elements of `A`. The unit
+of entropy is given by base `base`, such that for the default `base=2` it is bits."""
 function bitpattern_entropy(A::AbstractArray{T},base::Real=2) where T
     return bitpattern_entropy!(copy(A),base)  # copy of array to avoid in-place changes to A
 end
 
-"""Calculate the bitpattern entropy for an array A by reinterpreting the elements
-as UInts and sorting them to avoid creating a histogram. In-place version of bitpattern_entropy."""
+"""
+    H = bitpattern_entropy!(A::AbstractArray,base::Real=2)
+
+Calculates the bit pattern entropy `H` for an array `A` by reinterpreting the elements
+as UInts and sorting them to avoid creating a histogram. The bit pattern entropy is the
+entropy from occurences of every possible bitpattern in `T` in elements of `A`. The unit
+of entropy is given by base `base`, such that for the default `base=2` it is bits.
+In-place version of `bitpattern_entropy` that will sort `A`. Use `bitpattern_entropy` if
+changes to `A` are to be avoided."""
 function bitpattern_entropy!(A::AbstractArray{T},base::Real=2) where T
 
     # reinterpret to UInt then sort in-place for minimal memory allocation

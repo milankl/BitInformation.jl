@@ -6,7 +6,7 @@
 BitInformation.jl is a package for bitwise information analysis and manipulation in Julia arrays.
 Based on counting the occurrences of bits in floats (or generally any bits type) across various dimensions,
 this package calculates quantities like the bitwise real information content, the mutual information, the
-redundancy or preserved information between arrays.
+redundancy or preserved information between arrays. From v0.5 onwards masked arrays are also supported.
 
 For bitwise manipulation, BitInformation.jl also implements various rounding modes (IEEE round,shave,set_one, etc.)
 efficiently with bitwise operations for any number of bits. E.g. `round(x,i)` implements IEEE's round to nearest

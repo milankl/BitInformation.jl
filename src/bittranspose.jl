@@ -113,7 +113,7 @@ function bitbacktranspose!(	::Type{UIntT},				# UInt equiv to T
     return A
 end
 
-"""Backtranspose the bits of array A that were previously transposed with bittranspse()."""
+"""Backtranspose the bits of array A that were previously transposed with bittranspose()."""
 function bitbacktranspose(At::AbstractArray{T};kwargs...) where T
 	UIntT = Base.uinttype(T)                        # get corresponding UInt to T
 	A = fill(reinterpret(T,zero(UIntT)),size(At))   # preallocate with zeros (essential)

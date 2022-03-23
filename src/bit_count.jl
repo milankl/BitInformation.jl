@@ -1,4 +1,7 @@
-"""Count the occurences of the 1-bit in bit position i across all elements of A."""
+"""
+    n = bitcount(A::AbstractArray{T},i::Int) where {T<:Unsigned}
+
+Counts the occurences of the 1-bit in bit position i across all elements of A."""
 function bitcount(A::AbstractArray{T},i::Int) where {T<:Unsigned}
     nbits = sizeof(T)*8         # number of bits in T
     @boundscheck i <= nbits || throw(error("Can't count bit $b for $N-bit type $T."))
@@ -12,7 +15,12 @@ function bitcount(A::AbstractArray{T},i::Int) where {T<:Unsigned}
     return c
 end
 
-"""Count the occurences of the 1-bit in every bit position b across all elements of A."""
+"""
+    C = bitcount(A::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
+
+Counts the occurences of the 1-bit in every bit position across all elements of `A`.
+Returns a counter array `C::Vector{Int}` such that the first entries represents
+the first bit in elements of type `T`, e.g. the sign bit for floats."""
 function bitcount(A::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
     nbits = 8*sizeof(T)             # determine the size [bit] of elements in A
     C = zeros(Int,nbits)
@@ -27,8 +35,12 @@ function bitcount(A::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
     return C
 end
 
-"""Entropy [bit] for bitcount functions. Maximised to 1bit for random uniformly
-distributed bits in A."""
+"""
+    H = bitcount_entropy(A::AbstractArray{T},base::Real=2) where {T<:Union{Integer,AbstractFloat}}
+
+Returns a vector `H` of entropies for the occurence of 0,1 in every bit position in `T` across elements of `A`.
+Makes use of the `bitcount` functions and calculates the entropy from the probability of the 0 and 1 bit.
+The base `base` is by default 2, such that the unit of entropy is bit."""
 function bitcount_entropy(  A::AbstractArray{T},    # input array
                             base::Real=2            # entropy with base
                             ) where {T<:Union{Integer,AbstractFloat}}
@@ -47,7 +59,11 @@ function bitcount_entropy(  A::AbstractArray{T},    # input array
     return H
 end
 
-"""Update counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in a,b.""" 
+"""
+    bitpair_count!(C::Array{Int,3},a::T,b::T) where {T<:Integer}
+
+Update counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in a,b.
+`nbits` is the number of bits in type `T`.""" 
 function bitpair_count!(C::Array{Int,3},a::T,b::T) where {T<:Integer}
     nbits = 8*sizeof(T)
     mask = one(T)                   # start with least significant bit
@@ -59,7 +75,11 @@ function bitpair_count!(C::Array{Int,3},a::T,b::T) where {T<:Integer}
     end
 end
 
-"""Returns counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in elements of A,B."""
+"""
+    C = bitpair_count(A::AbstractArray{T},B::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
+
+Returns counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in elements of A,B.
+`nbits` is the number of bits in type `T`."""
 function bitpair_count( A::AbstractArray{T},
                         B::AbstractArray{T}
                         ) where {T<:Union{Integer,AbstractFloat}}
@@ -82,7 +102,11 @@ function bitpair_count( A::AbstractArray{T},
     return C
 end
 
-"""Returns counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in elements of A,B."""
+"""
+    C = bitpair_count(A::AbstractArray{T},mask::AbstractArray{Bool}) where {T<:Union{Integer,AbstractFloat}}
+
+Returns counter array C of size nbits x 2 x 2 for every 00|01|10|11-bitpairing in elements of A,B where neither
+are masked as determined from `mask`. `nbits` is the number of bits in type `T`."""
 function bitpair_count( A::AbstractArray{T},
                         mask::AbstractArray{Bool}
                         ) where {T<:Union{Integer,AbstractFloat}}
