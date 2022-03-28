@@ -64,7 +64,7 @@ end
     for T in (UInt8,UInt16,UInt32,UInt64,Float16,Float32,Float64)
         mutinf = mutual_information(rand(T,N),rand(T,N))
         for m in mutinf
-            @test isapprox(0,m,atol=1e-3)
+            @test isapprox(0,m,atol=2e-3)
         end
     end
 
