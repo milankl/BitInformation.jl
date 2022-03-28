@@ -205,6 +205,6 @@ end
         A = rand(T,30,40)
         round!(A,1)
         mask = A .== masked_value
-        @test bitinformation(A,mask) == bitinformation(A,masked_value)
+        @test bitinformation(A,mask) == bitinformation(A;masked_value)
     end
 end
