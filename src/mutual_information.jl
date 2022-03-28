@@ -52,19 +52,29 @@ function mutual_information(A::AbstractArray{T},
     return M
 end
 
-"""Bitwise real information content of array `A` calculated from the bitwise mutual information
-in adjacent entries in A along dimension `dim`."""
+"""
+    M = bitinformation(A::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
+
+Bitwise real information content of array `A` calculated from the bitwise mutual information
+in adjacent entries in `A`. Optional keyword arguments
+
+    - `dim::Int=1` computes the bitwise information along dimension `dim`.
+    - `masked_value::T=NaN` masks all entries in `A` that are equal to `masked_value`.
+    - `set_zero_insignificant::Bool=true` set insignificant information to zero.
+    - `confidence::Real=0.99` confidence level for `set_zero_insignificant`.
+"""
 function bitinformation(A::AbstractArray{T};
                         dim::Int=1,
+                        masked_value::Union{T,Nothing}=nothing,
                         kwargs...) where {T<:Union{Integer,AbstractFloat}}
-
-    # Permute A to take adjacent entry in dimension dim
-    A = permute_dim_forward(A,dim)
     
-    # create a two views on A for pairs of adjacent entries
+    # create a BitArray mask if a masked_value is provided
+    isnothing(masked_value) || return bitinformation(A,A .== masked_value;dim,kwargs...)
+
+    A = permute_dim_forward(A,dim)  # Permute A to take adjacent entry in dimension dim
     n = size(A)[1]                  # n elements in dim
 
-    # as A is now permuted always select 1st dimension 
+    # create a two views on A for pairs of adjacent entries, dim is always 1st dimension after permutation
     A1view = selectdim(A,1,1:n-1)   # no adjacent entries in A array bounds
     A2view = selectdim(A,1,2:n)     # for same indices A2 is the adjacent entry to A1
 
@@ -112,9 +122,11 @@ function bitinformation(A::AbstractArray{T},
     return M
 end
 
-"""Calculate the bitwise redundancy of two arrays A,B. Redundancy
-is a normalised measure of the mutual information 1 for always
-identical/opposite bits, 0 for no mutual information."""
+"""
+    R = redundancy(A::AbstractArray{T},B::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
+
+Bitwise redundancy of two arrays A,B. Redundancy is a normalised measure of the mutual information:
+1 for always identical/opposite bits, 0 for no mutual information."""
 function redundancy(A::AbstractArray{T},
                     B::AbstractArray{T}) where {T<:Union{Integer,AbstractFloat}}
     
