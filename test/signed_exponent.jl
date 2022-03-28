@@ -5,6 +5,10 @@
             # call functions with array but evaluated only the element of it
             # with === to allow to nan equality too
             @test A[1] === biased_exponent(signed_exponent(A))[1]
+            
+            # and for scalars
+            a = reinterpret(T,rand(Base.uinttype(T)))
+            @test a === biased_exponent(signed_exponent(a))
         end
 
         # special cases 0, NaN, Inf

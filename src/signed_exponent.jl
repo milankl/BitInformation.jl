@@ -9,7 +9,7 @@ function signed_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
     sbits = Base.significand_bits(T)
     bias  = Base.exponent_bias(T)
 
-    for i in eachindex(A)
+    @inbounds for i in eachindex(A)
         ui = reinterpret(Unsigned,A[i])
         sf = ui & sfmask                            # sign & fraction bits
         e = (((ui & emask) >> sbits) % Int) - bias  # de-biased exponent
@@ -33,7 +33,7 @@ function biased_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
     sbits = Base.significand_bits(T)
     bias  = Base.uinttype(T)(Base.exponent_bias(T))
 
-    for i in eachindex(A)
+    @inbounds for i in eachindex(A)
         ui = reinterpret(Unsigned,A[i])
         sf = ui & sfmask                        # sign & fraction bits
         eabs = ((ui & eabsmask) >> sbits)       # isolate sign-magnitude exponent
@@ -76,6 +76,10 @@ function signed_exponent(A::Array{T}) where {T<:Union{Float16,Float32,Float64}}
     return B
 end
 
+function signed_exponent(f::T) where {T<:Union{Float16,Float32,Float64}}
+    return signed_exponent!([f])[1]     # pack into array and unpack again
+end
+
 """
 ```julia
 B = biased_exponent(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
@@ -86,4 +90,8 @@ function biased_exponent(A::Array{T}) where {T<:Union{Float16,Float32,Float64}}
     B = copy(A)
     biased_exponent!(B)
     return B
+end
+
+function biased_exponent(f::T) where {T<:Union{Float16,Float32,Float64}}
+    return biased_exponent!([f])[1]     # pack into array and unpack again
 end
