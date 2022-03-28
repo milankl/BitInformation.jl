@@ -9,7 +9,7 @@ function signed_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
     sbits = Base.significand_bits(T)
     bias  = Base.exponent_bias(T)
 
-    for i in eachindex(A)
+    @inbounds for i in eachindex(A)
         ui = reinterpret(Unsigned,A[i])
         sf = ui & sfmask                            # sign & fraction bits
         e = (((ui & emask) >> sbits) % Int) - bias  # de-biased exponent
@@ -19,6 +19,8 @@ function signed_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
 
         A[i] = reinterpret(T,sf | esigned)  # concatenate everything back together
     end
+
+    return A
 end
 
 """In-place version of `biased_exponent(::Array)`. Inverse of `signed_exponent!"."""
@@ -33,7 +35,7 @@ function biased_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
     sbits = Base.significand_bits(T)
     bias  = Base.uinttype(T)(Base.exponent_bias(T))
 
-    for i in eachindex(A)
+    @inbounds for i in eachindex(A)
         ui = reinterpret(Unsigned,A[i])
         sf = ui & sfmask                        # sign & fraction bits
         eabs = ((ui & eabsmask) >> sbits)       # isolate sign-magnitude exponent
@@ -46,6 +48,8 @@ function biased_exponent!(A::AbstractArray{T}) where {T<:Base.IEEEFloat}
         ebiased = esign & (eabs == 0) ? emask : ebiased
         A[i] = reinterpret(T,sf | ebiased)      # concatenate everything back together
     end
+
+    return A
 end
 
 """
@@ -72,8 +76,11 @@ and a magnitude 2^1 + 2^1 = 3. NaN/Inf exponent bits are mapped to negative zero
 in sign-magnitude representation which is exactly reversed with `biased_exponent`."""
 function signed_exponent(A::Array{T}) where {T<:Union{Float16,Float32,Float64}}
     B = copy(A)
-    signed_exponent!(B)
-    return B
+    return signed_exponent!(B)
+end
+
+function signed_exponent(f::T) where {T<:Union{Float16,Float32,Float64}}
+    return signed_exponent!([f])[1]     # pack into array and unpack again
 end
 
 """
@@ -84,6 +91,9 @@ Convert the signed exponents from `signed_exponent` back into the
 standard biased exponents of IEEE floats."""
 function biased_exponent(A::Array{T}) where {T<:Union{Float16,Float32,Float64}}
     B = copy(A)
-    biased_exponent!(B)
-    return B
+    return biased_exponent!(B)
+end
+
+function biased_exponent(f::T) where {T<:Union{Float16,Float32,Float64}}
+    return biased_exponent!([f])[1]     # pack into array and unpack again
 end
