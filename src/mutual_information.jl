@@ -112,6 +112,20 @@ function bitinformation(A::AbstractArray{T},
     return M
 end
 
+"""
+    M = bitinformation(A::AbstractArray{T}, masked_value::T) where {T<:Union{Integer,AbstractFloat}}
+
+Bitwise real information content of array `A` calculated from the bitwise mutual information
+in adjacent entries in A along dimension `dim` (optional keyword). Array `A` is masked for all
+entries that are equal to `masked_value`. Masked elements are ignored in the bitwise information calculation."""
+function bitinformation(A::AbstractArray{T},
+                        masked_value::T;
+                        kwargs...) where {T<:Union{Integer,AbstractFloat}}
+
+    mask = A .== masked_value               # create a bitarray for the mask
+    return bitinformation(A,mask,kwargs...) 
+end
+
 """Calculate the bitwise redundancy of two arrays A,B. Redundancy
 is a normalised measure of the mutual information 1 for always
 identical/opposite bits, 0 for no mutual information."""

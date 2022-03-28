@@ -199,5 +199,12 @@ end
         mask[1:2:end,2:2:end] .= true
         mask[2:2:end,1:2:end] .= true
         @test_throws AssertionError bitinformation(A,mask)
+
+        # check providing mask against providing a masked_value (mask is created internally)
+        masked_value = convert(T,1/4)
+        A = rand(T,30,40)
+        round!(A,1)
+        mask = A .== masked_value
+        @test bitinformation(A,mask) == bitinformation(A,masked_value)
     end
 end
