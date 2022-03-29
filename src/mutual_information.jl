@@ -68,8 +68,8 @@ function bitinformation(A::AbstractArray{T};
                         masked_value::Union{T,Nothing}=nothing,
                         kwargs...) where {T<:Union{Integer,AbstractFloat}}
     
-    # create a BitArray mask if a masked_value is provided
-    isnothing(masked_value) || return bitinformation(A,A .== masked_value;dim,kwargs...)
+    # create a BitArray mask if a masked_value is provided, use === to also allow NaN comparison
+    isnothing(masked_value) || return bitinformation(A,A .=== masked_value;dim,kwargs...)
 
     A = permute_dim_forward(A,dim)  # Permute A to take adjacent entry in dimension dim
     n = size(A)[1]                  # n elements in dim

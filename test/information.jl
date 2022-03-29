@@ -206,5 +206,12 @@ end
         round!(A,1)
         mask = A .== masked_value
         @test bitinformation(A,mask) == bitinformation(A;masked_value)
+
+        # check that masked_value=NaN also works
+        A[:,2] .= NaN                       # put some NaNs somewhere
+        mask = BitArray(undef,size(A)...)   # create corresponding mask
+        fill!(mask,false)
+        mask[:,2] .= true
+        @test bitinformation(A,mask) == bitinformation(A;masked_value=convert(T,NaN))
     end
 end
