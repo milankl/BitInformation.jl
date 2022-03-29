@@ -211,7 +211,7 @@ end
         A[:,2] .= NaN                       # put some NaNs somewhere
         mask = BitArray(undef,size(A)...)   # create corresponding mask
         fill!(mask,false)
-        mask[:,2] = true
+        mask[:,2] .= true
         @test bitinformation(A,mask) == bitinformation(A;masked_value=convert(T,NaN))
     end
 end
