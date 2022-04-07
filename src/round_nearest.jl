@@ -1,8 +1,12 @@
 """Shift integer to push the mantissa in the right position. Used to determine
 round up or down in the tie case. `keepbits` is the number of mantissa bits to
-be kept (i.e. not zero-ed) after rounding."""
+be kept (i.e. not zero-ed) after rounding. Special case: shift is -1 for
+keepbits == significand_bits(T) to avoid a round away from 0 where no rounding
+should be applied."""
 function get_shift(::Type{T},keepbits::Integer) where {T<:Base.IEEEFloat}
-    return Base.significand_bits(T) - keepbits
+    shift = Base.significand_bits(T) - keepbits     # normal case
+    shift -= keepbits == Base.significand_bits(T)   # to avoid round away from 0
+    return shift
 end
 
 """Returns for a Float-type `T` and `keepbits`, the number of mantissa bits to be

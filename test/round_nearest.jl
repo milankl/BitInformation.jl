@@ -55,7 +55,7 @@ end
 
 @testset "No rounding for keepbits=10,23,52" begin
     for (T,k) in zip([Float16,Float32,Float64],
-                        [11,24,53])
+                        [10,23,52])
         A = rand(T,200,300)
         Ar = round(A,k)
         @test A == Ar
