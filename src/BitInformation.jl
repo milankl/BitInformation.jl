@@ -7,7 +7,8 @@ module BitInformation
     # TRANSFORMATIONS
     export bittranspose, bitbacktranspose,
         xor_delta, unxor_delta, xor_delta!, unxor_delta!,
-        signed_exponent, biased_exponent
+        signed_exponent, biased_exponent,
+        bitarray
     
     # INFORMATION
     export bitinformation, mutual_information, redundancy, bitpattern_entropy,

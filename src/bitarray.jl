@@ -1,4 +1,4 @@
-function Base.BitArray(A::AbstractArray{T}) where T
+function bitarray(A::AbstractArray{T}) where T
     nbits = 8*sizeof(T)         # number of bits in T
     UIntN = Base.uinttype(T)    # UInt type corresponding to T
 
@@ -23,7 +23,7 @@ function bitmap(A::AbstractMatrix;dim::Int=1)
 
     #TODO bitordering for dim=2 is currently off
     n,m = size(A)    
-    B = BitArray(A)
+    B = bitarray(A)
     nbits,_ = size(B)
     Br = reshape(B,nbits*n,:)
     Br = dim == 1 ? Br : Br'
