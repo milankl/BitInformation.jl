@@ -1,3 +1,5 @@
+const IEEEFloat_and_complex = Union{Float16,Float32,Float64,ComplexF16,ComplexF32,ComplexF64}
+
 """Shift integer to push the mantissa in the right position. Used to determine
 round up or down in the tie case. `keepbits` is the number of mantissa bits to
 be kept (i.e. not zero-ed) after rounding. Special case: shift is -1 for
@@ -57,6 +59,16 @@ function Base.round(x::T,               # Float to be rounded
     return reinterpret(T,ui & keepmask)             # set trailing bits to zero
 end
 
+function Base.round(x::Complex,         # Complex float to be rounded
+                    ulp_half::UIntT,    # obtain from get_ulp_half,
+                    shift::Integer,     # get_shift, and
+                    keepmask::UIntT     # get_keep_mask
+                    ) where {UIntT<:Unsigned}
+    a = round(real(x),ulp_half,shift,keepmask)
+    b = round(imag(x),ulp_half,shift,keepmask)
+    return a+im*b
+end
+
 """Scalar version of `round(::Float,keepbits)` that first obtains
 `shift, ulp_half, keep_mask` and then rounds."""
 function Base.round(x::T,
@@ -65,18 +77,25 @@ function Base.round(x::T,
     return round(x,get_ulp_half(T,keepbits),get_shift(T,keepbits),get_keep_mask(T,keepbits))
 end
 
+function Base.round(x::Complex{T},keepbits::Integer) where T
+    ulp_half = get_ulp_half(T,keepbits)
+    shift = get_shift(T,keepbits)
+    keepmask = get_keep_mask(T,keepbits)
+    return round(x,ulp_half,shift,keepmask)
+end
+
 """IEEE's round to nearest tie to even for a float array `X` in-place. Calculates from `keepbits`
 only once the variables `ulp_half`, `shift` and `keep_mask` and loops over every element of the
 array."""
-function round!(X::AbstractArray{T},            # any array with element type T
-                keepbits::Integer               # how many mantissa bits to keep
-                ) where {T<:Base.IEEEFloat}     # constrain element type to Float16/32/64
+function round!(X::AbstractArray{T},                # any array with element type T
+                keepbits::Integer                   # how many mantissa bits to keep
+                ) where {T<:IEEEFloat_and_complex}  # constrain element type to (complex) Float16/32/64
 
-    ulp_half = get_ulp_half(T,keepbits)         # half of unit in last place (ulp)
-    shift = get_shift(T,keepbits)               # integer used for bitshift 
-    keep_mask = get_keep_mask(T,keepbits)       # mask to zero trailing mantissa bits
+    ulp_half = get_ulp_half(real(T),keepbits)       # half of unit in last place (ulp)
+    shift = get_shift(real(T),keepbits)             # integer used for bitshift 
+    keep_mask = get_keep_mask(real(T),keepbits)     # mask to zero trailing mantissa bits
 
-    @inbounds for i in eachindex(X)             # apply rounding to each element
+    @inbounds for i in eachindex(X)                 # apply rounding to each element
         X[i] = round(X[i],ulp_half,shift,keep_mask)
     end
 
@@ -84,9 +103,9 @@ function round!(X::AbstractArray{T},            # any array with element type T
 end
 
 """IEEE's round to nearest tie to even for a float array `X` which returns a rounded copy of `X`."""
-function Base.round(X::AbstractArray{T},        # any array with element type T
-                    keepbits::Integer           # mantissa bits to keep
-                    ) where {T<:Base.IEEEFloat} # constrain element type to Float32/64
+function Base.round(X::AbstractArray{T},                # any array with element type T
+                    keepbits::Integer                   # mantissa bits to keep
+                    ) where {T<:IEEEFloat_and_complex}  # constrain element type to (complex) Float16/32/64
 
     Xcopy = copy(X)                             # copy array to avoid in-place changes
     round!(Xcopy,keepbits)                      # in-place round the copied array
