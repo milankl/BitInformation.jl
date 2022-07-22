@@ -133,3 +133,25 @@ end
         end
     end 
 end
+
+@testset "Round ComplexF16/32/64" begin
+    @testset for NF in (ComplexF16,ComplexF32,ComplexF64)
+        @testset for keepbits in [4,6,8]
+            A = randn(NF,20,30)
+
+            R = real.(A)
+            I = imag.(A)
+
+            Ar1 = round(R,keepbits) + im*round(I,keepbits)
+            Ar2 = round(A,keepbits)
+
+            @test Ar1 == Ar2
+
+            a = randn(NF)
+            r = real(a)
+            i = imag(a)
+
+            @test round(a,keepbits) == round(r,keepbits) + im*round(i,keepbits)
+        end
+    end
+end
