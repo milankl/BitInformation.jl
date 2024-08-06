@@ -33,6 +33,8 @@ end
     @test all(isapprox.(H[16:55],ones(40),rtol=1e-4))
 end
 
+import BitInformation: bitpair_count
+
 @testset "Bit pair count" begin
     for T in (Float16,Float32,Float64)
         N = 10_000
@@ -57,7 +59,7 @@ end
         C4 = bitpair_count(Auint,Buint)
         for i in 1:nbits
             @test C4[i,1,2] + C4[i,2,1] == N    # 01, 10 are all cases = N
-            @test C1[i,1,1] == C4[i,1,2]        # 00 before is now 01
+            @test C1[i,1,1] == C4[i,1,2]        # 00 before is now 01
             @test C1[i,2,2] == C4[i,2,1]        # 11 before is now 10
             @test C4[i,1,1] == 0                # no 00
             @test C4[i,2,2] == 0                # no 11
