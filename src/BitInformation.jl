@@ -36,7 +36,7 @@ module BitInformation
     
     # information
     include("permutations.jl")
-    include("bit_count.jl")
+    include("bitcount.jl")
     include("mutual_information.jl")
     include("bitpattern_entropy.jl")
     include("remove_insignificant.jl")

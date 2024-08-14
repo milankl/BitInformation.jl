@@ -114,19 +114,19 @@ function bitpair_count( A::AbstractArray{T},
     @assert size(A) == size(mask) "Size of A=$(size(A)) does not match size of its mask=$(size(mask))"        
 
     nbits = 8*sizeof(T)             # number of bits in eltype(A)
-    C = zeros(Int,nbits,2,2)        # array of bitpair counters
+    C = zeros(Int, nbits, 2, 2)     # array of bitpair counters
 
     # reinterpret arrays A,B as UInt (no mem allocation required)
-    Auint = reinterpret(Base.uinttype(T),A)
-    nelements = length(Auint)
+    Auint = reinterpret(Base.uinttype(T), A)
 
     # always mask the last element in every column to avoid counting bitpairs across boundaries
-    n = size(A)[1]
-    mask[n:n:end] .= true
+    n = size(A, 1)
 
-    for i in 1:nelements-1
-        if ~(mask[i] | mask[i+1])           # if neither entry is masked
-            bitpair_count!(C,Auint[i],Auint[i+1])   # count all bits and increase counter C
+    @inbounds for jk in CartesianIndices(size(A)[2:end])  # 2nd, 3rd, ... dimension
+        for i in 1:n-1                          # first dimension but skip the last element
+            if ~(mask[i, jk] | mask[i+1, jk])   # if neither entry is masked
+                bitpair_count!(C, Auint[i, jk], Auint[i+1, jk])   # count all bits and increase counter C
+            end
         end
     end
 

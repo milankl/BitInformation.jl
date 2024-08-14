@@ -118,7 +118,7 @@ end
 
         # joint prob mass is therefore [0.375 0.125; 0.125 0.375]
         # at 50% bits are identical, at 50% they are independent
-        # = 25% same, 25% opposite
+        # = 25% same, 25% opposite
         p = mutual_information([0.375 0.125;0.125 0.375])
 
         R = redundancy(A,B)
@@ -136,7 +136,7 @@ end
 
         # joint prob mass is therefore [0.4375 0.0625; 0.0625 0.4375]
         # at 75% bits are identical, at 25% they are independent
-        # = 12.5% same, 12.5% opposite
+        # = 12.5% same, 12.5% opposite
         p = mutual_information([0.4375 0.0625;0.0625 0.4375])
 
         R = redundancy(A,B)
@@ -173,39 +173,39 @@ end
 end
 
 @testset "Masked arrays" begin
-    for T in (Float16,Float32,Float64)
-        A = rand(T,30,40)
-        sort!(A,dims=1)
+    for T in (Float16, Float32, Float64)
+        A = rand(T, 30, 40)
+        sort!(A, dims=1)
 
         # nothing is masked
         mask = BitArray(undef,30,40)
         fill!(mask,false)
-        @test bitinformation(A[1:end-1,:]) == bitinformation(A,mask)
+        @test bitinformation(A) == bitinformation(A, mask)
 
         # half of the array is masked
         # use view to avoid masking only a deep copy through [] indexing
-        fill!(@view(mask[:,21:end]),true)   
-        @test bitinformation(A[1:end-1,1:20]) == bitinformation(A,mask)
+        fill!(@view(mask[:, 21:end]),true)   
+        @test bitinformation(A[:, 1:20]) == bitinformation(A,mask)
 
         # half of the array is masked
         # use view to avoid masking only a deep copy through [] indexing
         fill!(mask,false)
-        fill!(@view(mask[21:end,:]),true)
-        @test bitinformation(A[1:20,:]) == bitinformation(A,mask)
+        fill!(@view(mask[21:end, :]), true)
+        @test bitinformation(A[1:20, :]) == bitinformation(A,mask)
 
         # mask every other value (should throw an error as no
         # adjacent entries are left)
-        fill!(mask,false)
-        mask[1:2:end,2:2:end] .= true
-        mask[2:2:end,1:2:end] .= true
+        fill!(mask, false)
+        mask[1:2:end, 2:2:end] .= true
+        mask[2:2:end, 1:2:end] .= true
         @test_throws AssertionError bitinformation(A,mask)
 
         # check providing mask against providing a masked_value (mask is created internally)
-        masked_value = convert(T,1/4)
-        A = rand(T,30,40)
-        round!(A,1)
+        masked_value = convert(T, 1/4)
+        A = rand(T, 30, 40)
+        round!(A, 1)
         mask = A .== masked_value
-        @test bitinformation(A,mask) == bitinformation(A;masked_value)
+        @test bitinformation(A, mask) == bitinformation(A; masked_value)
 
         # check that masked_value=NaN also works
         A[:,2] .= NaN                       # put some NaNs somewhere
@@ -213,5 +213,12 @@ end
         fill!(mask,false)
         mask[:,2] .= true
         @test bitinformation(A,mask) == bitinformation(A;masked_value=convert(T,NaN))
+
+        # only 2 in first dimension
+        dimss = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
+        for dims in dimss
+            A = randn(T, dims...)
+            @test bitinformation(A) == bitinformation(A, masked_value=T(999.))
+        end
     end
 end
